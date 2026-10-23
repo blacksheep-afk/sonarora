@@ -1,0 +1,34 @@
+import { expect, expectTypeOf, it } from 'vitest';
+import { parseMoney } from '../../src/engine/money/index';
+import { buildDistribution } from '../../src/engine/probability/index';
+import type { BuildDistribution } from '../../src/engine/probability/index';
+import { validateScenario } from '../../src/engine/validation/index';
+import type { ParseMoney, ValidateScenario } from '../../src/engine/validation/index';
+import { simulatePath } from '../../src/engine/simulation/index';
+import type { SimulatePath } from '../../src/engine/simulation/index';
+import { compareScenario } from '../../src/engine/comparison/index';
+import type { CompareStrategies, DecisionComparison } from '../../src/engine/comparison/index';
+import { planSafeToBuy } from '../../src/engine/safe-to-buy/index';
+import type { PlanSafeToBuy } from '../../src/engine/safe-to-buy/index';
+import { createDecisionState, acceptResult, financialInputChanged, currentResult } from '../../src/engine/state/index';
+import { draft, unwrap } from './financial-fixtures';
+it('implements the error-aware runtime contracts', () => {
+  expectTypeOf<typeof parseMoney>().toExtend<ParseMoney>();
+  expectTypeOf<typeof validateScenario>().toExtend<ValidateScenario>();
+  expectTypeOf<typeof buildDistribution>().toExtend<BuildDistribution>();
+  expectTypeOf<typeof simulatePath>().toExtend<SimulatePath>();
+  expectTypeOf<typeof compareScenario>().toExtend<CompareStrategies>();
+  expectTypeOf<typeof planSafeToBuy>().toExtend<PlanSafeToBuy>();
+});
+it('keeps old decisions hidden after an invalid edited draft without UI recalculation', () => {
+  const initial = createDecisionState<DecisionComparison>();
+  const old = unwrap(compareScenario(draft()));
+  const accepted = acceptResult(initial, { revision: initial.inputRevision, value: old });
+  if (!accepted.accepted) throw new Error(accepted.code);
+  const edited = financialInputChanged(accepted.state);
+  const invalid = compareScenario(draft({ cash: '0.001' }));
+  expect(invalid.ok).toBe(false);
+  expect(invalid).not.toHaveProperty('value');
+  expect(currentResult(edited)).toBeNull();
+  expect(acceptResult(edited, { revision: initial.inputRevision, value: old }).accepted).toBe(false);
+});

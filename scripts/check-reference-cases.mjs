@@ -10,7 +10,7 @@ const adapter = new URL('../reference/R51/evidence/moya_r46_dom_regression.js', 
 const source = readFileSync(adapter, 'utf8');
 const marker = source.indexOf('context.showChecks();');
 assert(marker > 0, 'Preserved adapter bootstrap boundary changed');
-const { engine, elements } = vm.runInNewContext(source.slice(0, marker) + '\n({ engine: context, elements });', {
+const { engine, elements } = vm.runInNewContext(source.slice(0, marker) + '\n({ engine: vm.runInContext("({ evaluate, run, safeToBuyPlan, jointCases, centsOf, addC, expectedCents, checkedCents, render })", context), elements });', {
   require: createRequire(adapter),
   __dirname: path.dirname(fileURLToPath(adapter)),
   process: { argv: ['node', 'reference-check', fileURLToPath(new URL('../reference/R51/index.html', import.meta.url))] },
@@ -67,13 +67,15 @@ check('REF-P02 unresolved bill remains locked', () => {
   assert.equal(engine.safeToBuyPlan(base, { ...supplier, obligationStatus1: 'unresolved', paidAmount1: 0, currentFunds: 1000 }).secondUnlocked, false);
 });
 check('REF-F01 fractional cents fail rather than round', () => {
-  assert.throws(() => engine.centsOf('0.001', 'amount'));
+  assert.equal(typeof engine.centsOf, 'function');
+  assert.throws(() => engine.centsOf('0.001', 'amount'), /exactly to cents/);
 });
 check('REF-F02 one cent over individual limit fails', () => {
-  assert.throws(() => engine.centsOf('10000000.01', 'amount'));
+  assert.throws(() => engine.centsOf('10000000.01', 'amount'), /cannot exceed R10,000,000/);
 });
 check('REF-F03 aggregate overflow fails', () => {
-  assert.throws(() => engine.addC(100000000000, 1));
+  assert.equal(typeof engine.addC, 'function');
+  assert.throws(() => engine.addC(100000000000, 1), /supported exact-calculation range/);
 });
 check('REF-S01 historical input event clears comparison immediately', () => {
   engine.render();

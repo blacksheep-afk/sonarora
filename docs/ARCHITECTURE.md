@@ -1,37 +1,46 @@
-# Sonaroraaah Sprint 1 architecture
+# Sonaroraaah implemented engine architecture — Sprint 2
 
-Sprint 0 baseline: 14a7cab4799fc99d294e762514ace10ccb511126. Work is in the official Desktop checkout on develop. No UI, historical reference, backend or financial engine migration.
+Baseline: 9398777b76bd4c92fdb32b7a9357527db7573dfd on develop in the official Desktop checkout. The application UI remains unchanged and does not import the engine.
 
-## Modules and allowed dependencies
+## Dependency graph
 
-All engine imports are type-only. Paths below are under src/engine; each module has index.ts. No root barrel permits bypassing the graph.
+All engine source remains within the nine index.ts modules. Types may use only the declared edges; values may use only the narrower runtime edges.
 
-| Module | May depend on |
-| --- | --- |
-| money | none |
-| probability | none |
-| state | none |
-| scenario | money, probability |
-| explanations | money, probability |
-| validation | money, probability, scenario |
-| simulation | money, probability, scenario |
-| comparison | money, probability, scenario, simulation, explanations |
-| safe-to-buy | money, scenario, state, explanations |
+| Module | Type dependencies | Runtime dependencies |
+| --- | --- | --- |
+| money | none | none |
+| probability | none | none |
+| state | none | none |
+| scenario | money, probability | none |
+| explanations | money, probability | none |
+| validation | money, probability, scenario | money, probability |
+| simulation | money, probability, scenario, validation | money, probability, validation |
+| comparison | money, probability, scenario, simulation, explanations, validation | money, probability, simulation, validation |
+| safe-to-buy | money, scenario, state, explanations, validation | money, validation |
 
-This is a directed acyclic graph. Node tooling in scripts/architecture-policy.ts checks exact module paths, type-only imports and re-exports; rejects undeclared modules, external packages, Node/DOM/network/storage identifiers, dynamic imports and import-type bypasses. No financial runtime functions, calls or classes are permitted outside state. State alone implements revision transitions; other modules contain types and declarative constants. Negative fixtures exercise the policy.
+The graph is acyclic. Sprint 1's prohibition on all financial runtime code is replaced by explicit Sprint 2 runtime allowlists; it would otherwise prohibit this authorised mission. Runtime imports remain forbidden in declarative scenario/explanations modules, and financial modules cannot import upward or bypass the graph via barrels/dynamic imports. Architecture tests retain forbidden React, DOM, Node, storage, network, import-indirection and reverse-dependency cases, and add an authorised-runtime-edge test.
 
-The separate tsconfig.engine.json compiles engine sources with ES2023 only and no Node, browser or React ambient types. The application and tests retain their existing environment. This static policy is deliberately conservative and is not a security sandbox or proof against every possible JavaScript escape.
+Engine-only TypeScript compilation still uses ES2023 and no DOM, React or Node ambient types. The engine has no external packages, filesystem, clock, network, storage, backend or payment capability. The conservative AST guard is not a complete security proof.
 
-## Boundaries
+## Implemented boundaries
 
-The existing React shell does not import the engine and is unchanged. Engine modules do not render, store data, fetch information, connect to banks or make payments. Validation types describe future functions, not implemented validation. Simulation and comparison contain signatures and immutable output shapes only. No constructor can currently turn a raw number into trusted money/probability/day; test-only branded casts are explicitly synthetic.
+- money: strict decimal-text parsing with BigInt digits; bounded integer-cent numbers; checked arithmetic, expected-value boundaries and display conversions.
+- probability: validated finite weights, independent or linked minimum-marginal distributions, unknown-date exclusion and R51 path filtering.
+- validation: structured field errors, immutable snapshots, safe bounds and supported-scenario checks.
+- simulation: chronological 30-day cent paths, three strategies, explicit liabilities and typed event records.
+- comparison: three strategy results, expected cents, essential risk, purchase/sales percentages, timing and domain reason codes.
+- safe-to-buy: supplier constraints, reconciliation, starter affordability, refreshed reserves and revision-current attestations.
+- state: previously implemented pure revision transitions; still no UI recalculation wiring.
+- scenario/explanations: immutable data, code and display contracts.
 
-Future flow, not implemented: raw draft -> validation result -> normalized scenario -> joint distribution -> simulation outcomes -> comparison -> structured explanations. Safe-to-Buy is a distinct snapshot/confirmation contract. State wraps any immutable result with an input revision. UI integration is deferred.
+## Public APIs and trust
 
-## Historical behavior and design choices
+compareScenario(draft) validates raw string fields and returns a structured success/failure. validateScenario creates a deeply frozen owned scenario registered in a module-local WeakSet. compareValidatedScenario and simulatePath reject objects that did not cross this boundary, even if a caller casts them to the branded type. The WeakSet is ephemeral runtime identity, not account storage or persistence. Serialized/cloned scenarios must be revalidated from a draft.
 
-R51 uses integer cents, input days 1..14, a Day 30 simulation horizon, and two essential bills with a shared due day and explicit payment priority, and now/wait/trigger strategies. Linked receipt/sales outcomes use the minimum marginal probability, not an arbitrary correlation or configurable joint input. Unknown receipt timing excludes the receipt from modelled paths. Preserve these when migration is separately approved.
+planSafeToBuy takes typed cent-denominated input and still validates it at runtime: registered scenario, every amount, supplier state, original bill identity/amount/status, partial/outstanding consistency, reported dates and confirmation provenance. It copies known fields into owned immutable data before calculation. Frontends must parse decimal supplier money with parseMoney; there is no UI adapter in this sprint.
 
-Brands, module boundaries, structured error/reason codes, immutable envelopes, explicit incomplete/locked/modelled-feasible states and revision reducers are new contract design choices. They are not retroactive descriptions of R51's JavaScript types or its exact UI status strings. Supplier nonacceptance maps to a blocked explanation at the new boundary; historical R51 internally uses off. The new representation does not change the preserved implementation.
+Parse/distribution/comparison/simulation/planning input errors return structured codes, paths and message keys. Low-level checked arithmetic and output-day conversion throw on programmer misuse or bound violations; the public financial wrappers convert MoneyError into structured failures. There is no stale-result cache: callers use the separate revision transitions.
 
-Original reference launchers and reports are preserved even where they contain obsolete filenames. The new quality gate invokes the original Node scripts directly and checks exit codes, rather than relying on legacy interactive CMD launchers. CI remains a proposed local workflow until Chief pushes and verifies it remotely.
+## Remaining proposals and limits
+
+UI integration, cross-session worker routing, persistence, banking verification and any supplier verification remain unimplemented. Exact rational probability arithmetic is not the current policy: expected values deliberately retain R51 Number weighting and Math.round semantics, including documented binary half-cent behavior. A change to this policy or the historical wait-with-unpaid-bills rule requires explicit behavioral approval. No trained forecasting model or predictive accuracy claim exists.

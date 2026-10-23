@@ -30,12 +30,18 @@ describe('architecture dependency enforcement', () => {
   it('rejects runtime dependencies even when the module edge is allowed', () => {
     expect(inspectEngine(sources('scenario', "import { MAX_INPUT_CENTS } from '../money/index';")).length).toBeGreaterThan(0);
   });
-  it('rejects hidden runtime financial implementations and unapproved modules', () => {
-    expect(inspectEngine(sources('money', 'export const calculate = () => 100;')).length).toBeGreaterThan(0);
+  it('permits authorised financial functions while rejecting runtime in declarative and unapproved modules', () => {
+    expect(inspectEngine(sources('money', 'export const calculate = () => 100;'))).toEqual([]);
+    expect(inspectEngine(sources('scenario', 'export const calculate = () => 100;')).length).toBeGreaterThan(0);
     expect(inspectEngine({ ...sources('state', ''), 'banking/index.ts': '' }).length).toBeGreaterThan(0);
   });
   it('requires every engine module and rejects re-export bypasses', () => {
     expect(inspectEngine({}).length).toBe(9);
     expect(inspectEngine(sources('money', "export type { FinancialScenario } from '../scenario/index';")).length).toBeGreaterThan(0);
   });
+});
+
+it('allows only authorised financial runtime edges', () => {
+  expect(inspectEngine(sources('simulation', "import { checkedCents } from '../money/index';"))).toEqual([]);
+  expect(inspectEngine(sources('probability', "import { validateScenario } from '../validation/index';")).length).toBeGreaterThan(0);
 });

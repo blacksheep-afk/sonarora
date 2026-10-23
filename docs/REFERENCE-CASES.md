@@ -29,3 +29,13 @@ The new revision tests separately cover stale inputs, invalid revisions, delayed
 R0.30 minus R0.10 leaves R0.20; one-cent essential shortfall; Day 30 horizon events and purchases beyond horizon; emergency and essential ordering; shared due date for two bills; unknown receipt timing; conditional purchase after a reported receipt with no prior shortfall; no sales without purchase; paid/unpaid/partial/none liability consistency; supplier nonacceptance/minimum/increment/fees; fresh balance already includes receipt; immediately hidden results on invalid edit.
 
 These are a review checklist, not additional passing tests. Implementing future rules requires named inputs, an independently checked expectation where possible, a preserved-reference comparison and explicit approval of any discrepancy. Contract-shape fixtures and branded casts do not validate values or prove financial calculations.
+
+## Sprint 2 executed parity and independent evidence
+
+The functional engine is tested against 96 distinct raw scenarios x three strategies (288 aggregate comparisons plus their outcome records), and 40 distinct matching Safe-to-Buy snapshots. Fixture uniqueness is checked so duplicate cases are not misrepresented as coverage. An independent BigInt posting identity verifies each new path's closing cash and net after unpaid liabilities. Named independent tests separately cover cent arithmetic, closed-form expected exposure, receipt/bill/emergency/sales ordering, bill priority, purchase rules and stale/contradictory confirmations.
+
+The original R51 suite and all 16 expanded cases still execute. REF-F01/F02/F03 were strengthened: the original expanded bootstrap did not expose lexical const helpers, allowing TypeError to satisfy a generic assert.throws. The bootstrap now explicitly obtains centsOf/addC from the preserved VM lexical scope and requires their actual financial rejection messages. This fixes test code, never the historical reference.
+
+Known classified differences: public APIs return structured errors and immutable validated data; supplier off is normalized into blocked/incomplete; reported receipt day permits zero/late offsets; a Day 30 closure event and result provenance are new metadata. None changes valid-scenario monetary decisions.
+
+Known retained limitations are tested, not hidden: R51 binary-weight half-cent rounding, essential-only risk, wait purchases despite earlier unpaid bills, tiny-path omission without renormalization and independent rounding of expected metrics. Proposed changes to these policies are not implemented.

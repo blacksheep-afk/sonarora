@@ -25,3 +25,9 @@ No comparison, financial parser or Safe-to-Buy engine is run by these transition
 ## Tests
 
 State tests cover initial dirty state; matching result publication; immediate clearing of result and all confirmations; old-result and old-confirmation rejection; complete user-reported confirmations; repeated changes; defensive stale-envelope reading; invalid revisions and safe-integer exhaustion. They test actual state runtime only. Contract/type tests cover readonly fields and the impossibility of assigning true to independentlyVerified without escaping the type system.
+
+## Sprint 2 integration boundary
+
+Financial comparison and Safe-to-Buy APIs now return immutable modelled results or structured failures. A pure integration test publishes a real comparison, increments the revision on an edit, submits an invalid new draft and confirms that the old decision stays hidden; a late result remains rejected. Safe-to-Buy also checks current receipt/balance/liability attestation revisions.
+
+This does not add UI event wiring. The host must call financialInputChanged on every relevant edit and isolate sessions. Revision consistency cannot prove a real-world payment or automatically detect an edit made outside that protocol.

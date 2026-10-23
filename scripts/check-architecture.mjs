@@ -38,5 +38,5 @@ assert.equal(errors.length, 0, errors.join('\n'));
 const entry = readFileSync(new URL('index.html', root), 'utf8');
 assert(entry.includes('<title>Sonaroraaah</title>') && !/MOYA/i.test(entry), 'Sonaroraaah branding required');
 assert(readFileSync(new URL('src/foundation.ts', root), 'utf8').includes("product: 'Sonaroraaah'"));
-console.log('PASS architecture: ' + Object.keys(ENGINE_DEPENDENCIES).length + ' engine modules; type-only allowlisted dependencies; no financial runtime outside state; unchanged UI boundary.');
+console.log('PASS architecture: ' + Object.keys(ENGINE_DEPENDENCIES).length + ' engine modules; allowlisted type/runtime dependencies; validated financial boundary; unchanged UI boundary.');
 console.log('Scope: conservative static guard plus engine compilation without DOM/Node ambient types; not a complete security proof.');

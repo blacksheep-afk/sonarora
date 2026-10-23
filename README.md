@@ -1,6 +1,6 @@
 # Sonaroraaah
 
-Operation 009. Sprint 0 is accepted. Sprint 1 defines architecture and typed contracts; Sprint 2 and deployment remain unapproved.
+Operation 009. Sprint 0 is accepted. Sprint 1 is accepted. Sprint 2 implements the isolated financial engine; deployment and Sprint 3 remain unapproved.
 
 React + TypeScript + Vite foundation only. No financial engine, bank connection, storage or payments.
 
@@ -18,8 +18,8 @@ The full gate fails closed if historical reference files are absent or altered.
 
 See `docs/SPRINT-0-REPORT.md` for actual checks, blockers and provenance. Original R51 files must be copied byte-for-byte and verified before committing. Transcript hashes and historical test counts are not new verification.
 
-## Sprint 1
+## Engine
 
-Engine contracts live under src/engine. Only pure revision transitions are implemented; financial parsing, validation and calculations remain future work. The existing UI shell is unchanged.
+Engine contracts and tested financial implementations live under src/engine. The existing UI shell is unchanged and is not connected to these APIs.
 
-See [Architecture](docs/ARCHITECTURE.md), [Financial contracts](docs/FINANCIAL-CONTRACTS.md), [State contracts](docs/STATE-CONTRACTS.md), [Reference cases](docs/REFERENCE-CASES.md) and [Sprint 1 report](docs/SPRINT-1-REPORT.md). The typecheck command verifies both application/tests and the engine without DOM or Node ambient types.
+See [Architecture](docs/ARCHITECTURE.md), [Financial contracts](docs/FINANCIAL-CONTRACTS.md), [State contracts](docs/STATE-CONTRACTS.md), [Reference cases](docs/REFERENCE-CASES.md) and [Sprint 1 report](docs/SPRINT-1-REPORT.md) and [Sprint 2 report](docs/SPRINT-2-REPORT.md). The typecheck command verifies both application/tests and the engine without DOM or Node ambient types.

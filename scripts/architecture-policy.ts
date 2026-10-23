@@ -8,9 +8,15 @@ export const ENGINE_DEPENDENCIES = {
   scenario: ['money', 'probability'],
   explanations: ['money', 'probability'],
   validation: ['money', 'probability', 'scenario'],
-  simulation: ['money', 'probability', 'scenario'],
-  comparison: ['money', 'probability', 'scenario', 'simulation', 'explanations'],
-  'safe-to-buy': ['money', 'scenario', 'state', 'explanations'],
+  simulation: ['money', 'probability', 'scenario', 'validation'],
+  comparison: ['money', 'probability', 'scenario', 'simulation', 'explanations', 'validation'],
+  'safe-to-buy': ['money', 'scenario', 'state', 'explanations', 'validation'],
+} as const;
+export const RUNTIME_DEPENDENCIES = {
+  money: [], probability: [], state: [], scenario: [], explanations: [],
+  validation: ['money', 'probability'], simulation: ['money', 'probability', 'validation'],
+  comparison: ['money', 'probability', 'simulation', 'validation'],
+  'safe-to-buy': ['money', 'validation'],
 } as const;
 type ModuleName = keyof typeof ENGINE_DEPENDENCIES;
 const forbidden = new Set([
@@ -25,7 +31,7 @@ export function inspectEngine(sources: Readonly<Record<string, string>>): readon
   }
   for (const [file, content] of Object.entries(sources)) {
     const module = file.split('/')[0] as ModuleName;
-    if (!(module in ENGINE_DEPENDENCIES) || file !== module + '/index.ts') {
+    if (!Object.hasOwn(ENGINE_DEPENDENCIES, module) || file !== module + '/index.ts') {
       errors.push('Unexpected engine source: ' + file);
       continue;
     }
@@ -38,7 +44,8 @@ export function inspectEngine(sources: Readonly<Record<string, string>>): readon
       if (!(resolved in sources) || !allowed.includes(dependency) || resolved !== dependency + '/index.ts') {
         errors.push(file + ': forbidden dependency ' + specifier);
       }
-      if (!typeOnly) errors.push(file + ': engine dependencies must be type-only');
+      const runtimeAllowed: readonly string[] = RUNTIME_DEPENDENCIES[module];
+      if (!typeOnly && !runtimeAllowed.includes(dependency)) errors.push(file + ': runtime dependency forbidden: ' + specifier);
     }
     function visit(node: ts.Node) {
       if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
@@ -50,10 +57,10 @@ export function inspectEngine(sources: Readonly<Record<string, string>>): readon
       if (ts.isImportTypeNode(node) || ts.isImportEqualsDeclaration(node)) errors.push(file + ': import indirection forbidden');
       if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) errors.push(file + ': dynamic import forbidden');
       if ((ts.isIdentifier(node) || ts.isStringLiteral(node)) && forbidden.has(node.text)) errors.push(file + ': platform/dynamic API forbidden: ' + node.text);
-      if (module !== 'state' && (
+      if (['scenario', 'explanations'].includes(module) && (
         ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node) ||
         ts.isCallExpression(node) || ts.isNewExpression(node) || ts.isClassDeclaration(node)
-      )) errors.push(file + ': financial runtime implementation is outside Sprint 1');
+      )) errors.push(file + ': runtime implementation forbidden in this declarative module');
       ts.forEachChild(node, visit);
     }
     visit(source);

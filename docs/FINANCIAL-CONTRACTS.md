@@ -1,43 +1,51 @@
-# Financial contracts — Sprint 1
+# Implemented financial contracts — Sprint 2
 
-All records and collections are readonly. This is compile-time immutability, not automatic runtime validation. No parser, financial validator, distribution builder, simulator, comparison aggregator or staged-purchase calculator is implemented.
+## Exact money and precision
 
-## Money, uncertainty and timing
+Canonical money is a branded safe integer number of cents. parseMoney reads decimal digits through BigInt and converts only after the R10,000,000 individual limit (1,000,000,000 cents) passes. It accepts R51 positive syntax including .30, leading zeroes and surrounding whitespace. It rejects negative syntax (including -0), exponential notation, malformed entries and more than two fractional digits. Nothing malformed is silently rounded.
 
-Cents is a nominal number representing a safe integer count of cents, never a floating-point rand amount. NonNegativeCents narrows nonnegative quantities. InputCents narrows nonnegative entered amounts to the recorded R51 limit: 1,000,000,000 cents (R10,000,000). Signed intermediate/path amounts must remain within +/-100,000,000,000 cents (R1,000,000,000). ExpectedCents represents output-rounded weighted monetary results and is separate from entered/path cents. Expected calculations may involve numeric weights in future but round at the output boundary, matching R51.
+checkedCents checks safe-integer status and the +/-100,000,000,000-cent aggregate/intermediate bound. addCents, subtractCents and sumCents validate operands and every intermediate. inputCents enforces nonnegative individual inputs. toRand is a display/reference conversion only; toMoneyText emits exact signed decimal text. No financial path uses floating rand values.
 
-Brands are opaque compile-time distinctions. They do not validate arbitrary casts or JavaScript callers. Future decimal-text parsing must reject negatives, exponent notation, malformed entries and more than two fractional digits without implicit rounding; future arithmetic must guard every intermediate bound. Ordinary numbers cannot be assigned to money; probabilities cannot be assigned to money.
+Expected monetary values use separate numeric probability weights. Products and accumulated weighted intermediates are checked for finiteness and bounds; rounding happens only at R51-compatible output boundaries via Math.round. Negative half-cent rounding retains JavaScript's direction toward positive infinity, including signed zero.
 
-Probability is a validated finite 0..1 weight. DisplayPercent is an R51-style rounded display percentage, not a weight. For independent outcomes joint success is p*q; for linked outcomes it is min(p,q). The four path weights are joint, p-joint, q-joint and 1-p-q+joint, with the same omission/tolerance behavior as the reference to be verified during migration. No arbitrary linked joint probability is accepted by this contract. Unknown receipt dates force the effective receipt weight to zero in future implementations, without inventing a date.
+**Retained numerical limitation:** 50 cents * .29 is exactly 14.5 cents as a decimal rational, but R51's binary product is just below 14.5 and rounds to 14. This engine deliberately matches that observable result. An independent BigInt/rational test records mathematical 15 versus retained R51 14. Exact path arithmetic is established separately; parity does not establish exact rational expected-value accuracy. Changing this requires an approved policy/correction, not a hidden epsilon.
 
-Day is a validated input day 1..14 and narrows SimulationDay (1..30). EventDay additionally permits Day 0 for initial purchases. The horizon is exactly 30, as the preserved run loop demonstrates. A wait purchase can occur on Day 15 and sales on Day 29. Receipt timing is known(day) or unknown. Two essential bills share a due day and have first/second payment priority, preserving R51; distinct per-bill due days are unsupported rather than silently added.
+## Validated scenarios
 
-## Scenario and results
+Raw money/probability/day fields are text. Probability drafts use 0..1 rates, not UI percentages; the old UI is not connected. Numeric day/probability parsing retains R51's finite Number semantics, with integer/range checks for days. Money parsing is deliberately stricter than numeric probability parsing.
 
-OpeningFunds contains only reported cleared cash and bank funds. ExpectedReceipt has expected-not-cleared status and must never be added to opening cleared funds. EssentialObligations contains zero, one or two bills. StockAndSales separates cost, gross-sales estimate and sales lag. EmergencyExpense records amount and day. All sources are user-reported and independentlyVerified is always false.
+validateScenario returns a structured failure with nonempty issues or a deeply frozen owned ValidatedScenario. It validates all money, days 1..14, receipt known/unknown timing, bill IDs/count/priority, duplicate IDs, a shared due day, independent/linked mode and probability bounds. Unsupported correlations and horizons are rejected. Expected receipts remain expected-not-cleared, separate from opening cleared cash/bank funds.
 
-Strategy IDs remain now, wait and trigger, labelled Buy now, Protect the bill first, and Purchase conditionally after receipt. R51 buys now at Day 0, considers wait after the essential due day, and conditionally buys after a receipt with protected essentials/emergencies and sufficient funds. Same-day receipt events precede obligations. Unaffordable initial purchases are not silently retried. Sales exist only after stock purchase and count only when received. Sprint 1 implements none of these calculations.
+A runtime WeakSet identity check prevents ordinary public simulation/comparison APIs from accepting merely cast or cloned unvalidated scenarios. No bank verification is implied; every scenario source is user-reported and independentlyVerified=false.
 
-SimulationOutcome separates probabilityWeight from cents, records purchase/sales timing, opening/end balances, signed net after unpaid amounts, essential/emergency unpaid amounts, per-bill unpaid balances and ordered event records. The future engine must ensure bill-ID uniqueness, event order, consistency of totals and supported limits; TypeScript shapes alone cannot prove them.
+## Probability and timing
 
-DecisionComparison requires all three strategies, modelled essential-shortfall risk percentages (emergency unpaid is separate), expected monetary shortfall/end/unpaid/net values, purchase/sales chances, timing and explanations. It is labelled modelled-not-advice. There is no ranking algorithm, verified forecast or lending decision.
+Independent joint success is p*q. Linked success is min(p,q). The four weights retain source order: both, receipt-only, sales-only, neither. Unknown receipt dates force effective receipt probability to zero without inventing a date. R51's negative-neither tolerance -1e-9, clamp and omission of weights <=1e-10 are retained; discarded tiny paths are not renormalized. Total-weight checks allow that bounded omission. This is an assumption-driven model, not trained ML.
+
+Input days and sales lags are 1..14. Simulation runs through Day 30. Buy now attempts once at Day 0. Wait attempts once on dueDay+1; Day 15 purchases and Day 29 sales are reachable. No valid current scenario can schedule a purchase-linked sale on Day 30 or later; tests cover closing on Day 30 and reject unsupported input days rather than invent a broader scenario. A horizon-closed event is new diagnostic metadata, not an extra financial transaction.
+
+Same-day order: receipt, prioritized essential bills, emergency, eligible wait/trigger purchase, sales. Sales arriving that day do not retroactively pay a bill already processed. Trigger requires a receipt, no earlier unpaid essential/emergency amount and funds for stock plus remaining protected bills/emergencies. Initial unaffordable purchases are never retried.
+
+**Retained business limitation:** Wait is a timing strategy, not a guarantee of bill protection. It may buy after a missed bill if later cash is available. Unpaid liabilities remain visible; no automatic recommendation is made.
+
+## Results and exposure
+
+Every comparison, strategy result, simulation outcome and Safe-to-Buy plan is labelled modelled-not-advice, user-reported and independentlyVerified=false. Outcomes contain exact cents, purchase/sales timing, explicit per-bill and emergency liabilities, ordered events and Day 30 closure.
+
+Risk is the rounded percentage of essential-shortfall paths. Unpaid emergency amounts are separate and still contribute to expected unpaid/net exposure. Expected end balance, shortfall, individual bills, combined unpaid, net after liabilities, purchase/sales chances and purchase timing follow R51. No explanation component, bank data or UI renderer enters calculation.
 
 ## Safe-to-Buy
 
-Supplier terms explicitly record user-reported acceptance, minimum batch, increment and two delivery fees. OriginalBillState discriminates none, unresolved, unpaid, partial and paid. Partial records retain paid amount and outstanding balance; unpaid reserves the full amount, paid reserves zero, and unresolved must lock the later purchase. These arithmetic consistency rules are documented obligations of future validation, not guarantees established by interfaces.
+Supplier split acceptance, minimum, increment, fees and simplified gross-sales estimates are validated. Zero increment means no fixed-step constraint, matching R51. A positive starter must be smaller than total stock cost; both batches must satisfy supplier rules and have positive rounded modelled sales surplus. Sales surplus is not profit.
 
-ReportedClearedReceipt is distinct from ExpectedReceipt and carries an amount and day. RefreshedFunds is the user's current cleared balance, already including that receipt. It must never be increased by adding the receipt again. Remaining bills, remaining emergencies and buffer are explicit. The attached FinancialScenario supplies opening funds, total stock cost, dates, sales probability and the initial emergency amount. The starter emergency reserve and refreshed remaining emergency belong to different stages; they must not be added together indiscriminately. Conflicting entries, stale confirmations and missing snapshots must not produce a usable plan.
+Starter reserve uses original scenario bills, emergency and buffer, even if a later refreshed bill status says paid; this historical distinction is preserved. Later reserve uses reconciled outstanding bills, refreshed other bills/emergency and buffer. Paid means zero outstanding; unpaid means the original amount; partial requires 0 < paid < original and exactly original-paid outstanding; unresolved locks the later batch. Contradictory no-bill/paid/outstanding entries are structured errors.
 
-SafeToBuyPlan has incomplete, blocked, locked and modelled-feasible variants. A feasible starter can coexist with a locked later batch. These are proposed normalized statuses, not a change to R51's internal off/blocked/feasible result strings. A feasible model is not supplier approval, bank verification, a purchase instruction or profit. expectedSalesSurplus remains the simplified gross-sales estimate less stock/fees, not profit.
+ReportedReceiptDay replaces the too-narrow Sprint 1 Day type: R51 permits Day 0 and later reported offsets, while unlocking requires a positive reported receipt with day <= the shared due day. Nonnegative safe integer reported offsets are accepted; late Day 3/30 values lock without broadening scenario input days. Fractional/negative/nonfinite dates are rejected.
 
-## Validation and explanations
+Receipt, balance and liability attestations must match inputRevision and explicitly remain user-reported, never independently verified. Stale attestations lock; a current attestation with a missing underlying receipt/balance snapshot is contradictory. Refreshed funds already include the receipt and are never increased by adding it again. All returned records are immutable; blocked plans never expose an unlocked later batch.
 
-ValidationResult is either ok(value) or failure(nonempty structured issues), never both. Codes cover malformed money, unsupported precision, negative money, input/aggregate bounds, invalid day/probability/joint assumptions, incomplete input, contradictory confirmations and unsupported scenarios. Paths and message keys remain separate from components. No Zod schema or financial validation function is implemented in Sprint 1.
+## Contract evolution and limits
 
-Explanation reason codes are domain identifiers. Facts distinguish money, probabilities, day values and labels; caveats identify user-reported/hypothetical assumptions and sales-surplus/payment limits. React presentation and translation are future consumers, not dependencies. Explanation/result consistency must be tested alongside the future engine; a type definition cannot prove it.
+Sprint 1's proposed function aliases now return structured results. Simulation accepts ValidatedScenario; comparison starts from ScenarioDraft rather than accepting arbitrary precomputed outcomes. Safe planning checks cent-denominated inputs at runtime. New result provenance, diagnostics and closure metadata are contract corrections, not changes to historical monetary decisions.
 
-## Open questions before migration
-
-Review whether branded numeric cents should remain the public representation or use BigInt internally while preserving R51 outputs. Confirm the raw-draft adapter for decimal probabilities and legacy field names, the exact output-rounding/tolerance rules, and R51's chronological event ordering. Decide how future runtime validation and immutable snapshots will be enforced at untrusted boundaries. Arbitrary correlations, separate bill due dates, multiple expected receipts and longer horizons remain unsupported.
-
-Direct inspection corrected the old handover's ambiguous 14-day description: 1..14 constrains inputs, while run() iterates through Day 30. The source also exposes same-day bill priority and counts only essential shortfalls in displayed risk. These are preserved historical rules, not newly introduced calculations.
+Ordinary input failures carry validation codes/paths, not raw values or generic exceptions. Type assertions and hostile JavaScript getters/proxies remain outside a comprehensive security guarantee. Raw supplier-draft/UI adapters, real-world verification, cross-session asynchronous routing, exact rational expected-value policy and production assurance remain future work.
