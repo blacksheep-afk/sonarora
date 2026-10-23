@@ -5,6 +5,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const commands = [
   ['lint', 'node_modules/eslint/bin/eslint.js', '.', '--max-warnings', '0'],
   ['typecheck', 'node_modules/typescript/bin/tsc', '--noEmit'],
+  ['engine-typecheck', 'node_modules/typescript/bin/tsc', '-p', 'tsconfig.engine.json', '--noEmit'],
   ['test', 'node_modules/vitest/vitest.mjs', 'run'],
   ['reference', 'scripts/reference-regressions.mjs'],
   ['architecture', 'scripts/check-architecture.mjs'],

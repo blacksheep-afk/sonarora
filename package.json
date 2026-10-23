@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.engine.json --noEmit",
     "test": "vitest run",
     "reference:check": "node scripts/reference-regressions.mjs",
     "architecture:check": "node scripts/check-architecture.mjs",

@@ -9,3 +9,6 @@ for (const script of ['check-reference.mjs', '../reference/R51/evidence/moya_r46
   const result = spawnSync(process.execPath, args, { cwd: root, stdio: 'inherit' });
   if (result.error || result.status !== 0) process.exit(1);
 }
+
+const expanded = spawnSync(process.execPath, ['scripts/check-reference-cases.mjs'], { cwd: root, stdio: 'inherit' });
+if (expanded.error || expanded.status !== 0) process.exit(1);
