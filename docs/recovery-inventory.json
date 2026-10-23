@@ -1,0 +1,107 @@
+[
+  {
+    "path": ".gitattributes",
+    "bytes": 35,
+    "sha256": "c36f3e2f18f2b8c08eec149272a34982ef05f9d5f4edfabd5bae918d61245546"
+  },
+  {
+    "path": ".github/workflows/quality.yml",
+    "bytes": 404,
+    "sha256": "b47ffaa85ba8e945e02187a9f259209cbc32ffc611bf84e6aec1e9a0ea624d5d"
+  },
+  {
+    "path": ".gitignore",
+    "bytes": 300,
+    "sha256": "be6a9be8ed76a94d6a19db9eb3e86524719bb83f402cca41098eb9d0ab3f5200"
+  },
+  {
+    "path": "README.md",
+    "bytes": 1082,
+    "sha256": "d47c54a4e122472e3af5abc2ab4aae3b2fb966804b7a77164a2cf57dfe7f54d2"
+  },
+  {
+    "path": "docs/BEHAVIOR-AND-CONTRACTS.md",
+    "bytes": 1854,
+    "sha256": "1481bfc7444c4559037ee54bffd1a9f54e02964b3db2d7592d648854cb6407ba"
+  },
+  {
+    "path": "eslint.config.js",
+    "bytes": 354,
+    "sha256": "060b1e28dbcd24ae2321c3e1022a0e0505022128a6e9010454d1f9eacca4a1d3"
+  },
+  {
+    "path": "index.html",
+    "bytes": 372,
+    "sha256": "06c5158c7e4d29b6c73a0e1e33432635647e7795945ca4ff5c6b1526344395a1"
+  },
+  {
+    "path": "package.json",
+    "bytes": 924,
+    "sha256": "8699da0af57a593b7e63349324703ed50edc065ca0197883f7d75ce9c483f96e"
+  },
+  {
+    "path": "package-lock.json",
+    "bytes": 102935,
+    "sha256": "b1bcc28ef3e7402f707c04e7cebe3f9807cb12e03d76bc2c37d61cd50b0825b0"
+  },
+  {
+    "path": "reference/R51/manifest.json",
+    "bytes": 535,
+    "sha256": "2851faf2940a757ce34d706336acc815a8ecc083225945760af540454e8c6fce"
+  },
+  {
+    "path": "scripts/check-reference.mjs",
+    "bytes": 962,
+    "sha256": "8d4cd2b66fca4e06ec687841605c77b4b30dee80d258d6a833eaa45eb861ee88"
+  },
+  {
+    "path": "scripts/gate-self-test.mjs",
+    "bytes": 1180,
+    "sha256": "b04848adad673f844f040596f66e38b6396f327fe71fa010c050b3d85d923df6"
+  },
+  {
+    "path": "scripts/quality-gate.mjs",
+    "bytes": 807,
+    "sha256": "18a79088225f71d4a5e0df60da17153099df977f4426477a489ada5be731f48d"
+  },
+  {
+    "path": "scripts/reference-regressions.mjs",
+    "bytes": 638,
+    "sha256": "6dca45470fbbf89c97ab01c9965354d6ea79a362b0ab87d3af1d202bb84142e0"
+  },
+  {
+    "path": "src/App.tsx",
+    "bytes": 411,
+    "sha256": "7135af9f27f1d3029117748c4303c574c1e14a6facf826f1daffb0aacec120c5"
+  },
+  {
+    "path": "src/foundation.ts",
+    "bytes": 241,
+    "sha256": "4853cb8928d95e5bad6a7a771ae424cdeda849c58464e5c5515bef0da91bf0b6"
+  },
+  {
+    "path": "src/main.tsx",
+    "bytes": 292,
+    "sha256": "b7cc02ae57274564ca070c7e7c236842e141d0928f254775a5b655c076a4ad14"
+  },
+  {
+    "path": "src/style.css",
+    "bytes": 259,
+    "sha256": "8ff13a19113d179b4ec8fe1584c7233b77b9241cad74670ec0a74f087a5a157e"
+  },
+  {
+    "path": "tests/foundation.test.tsx",
+    "bytes": 800,
+    "sha256": "9a9beda9141a5457ca76ac7332da298324a5b02c9b2a510ce6b08db84a6528cc"
+  },
+  {
+    "path": "tsconfig.json",
+    "bytes": 595,
+    "sha256": "49ebcfd7860bba3b274bb030497ef87ace0a92f8acf5a3bcee969a9e8fd953f4"
+  },
+  {
+    "path": "vite.config.ts",
+    "bytes": 218,
+    "sha256": "d4ef478fc28dd75b85d958bd741d204dae6fb4fe2e21858f204c7bc11adaf503"
+  }
+]

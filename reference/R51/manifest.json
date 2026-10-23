@@ -1,0 +1,14 @@
+{
+  "status": "recovered-awaiting-regressions",
+  "provenance": "Recovered from Downloads in the Sibusiso Nkosi profile. Standalone source: index (1).html. ZIP retains its original name. Full hashes verified during this restart.",
+  "artifacts": [
+    {
+      "path": "index.html",
+      "sha256": "ac4158d3ab0fe4c4f4602c1f9c1a6045b19eecd29f4f9511c5c2ac5889793f3d"
+    },
+    {
+      "path": "MOYA_R51_PORTABLE_EVIDENCE_FIXED_WINDOWS.zip",
+      "sha256": "79ddd49c3a4f7962af497b92c23fb0b810a17076dc925d8f028efd9c6a2f36fe"
+    }
+  ]
+}

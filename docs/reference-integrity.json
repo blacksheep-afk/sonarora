@@ -1,0 +1,62 @@
+[
+  {
+    "path": "BUILD-ID.txt",
+    "sha256": "bb24d01135454b6dbbc0172dab99ae44d7b6d94a8b110375bb05b9e093868191",
+    "matchesZip": true
+  },
+  {
+    "path": "R46-READINESS-REPORT.md",
+    "sha256": "f11738d0ac9171e7e8804c0f0333ff69914a5015816d8b537c196470769f0790",
+    "matchesZip": true
+  },
+  {
+    "path": "R51-REVIEW.md",
+    "sha256": "1fa6a85a8badcbc39be4282b53f6ea7a265324e83a07f5ff55ea222b8db7af20",
+    "matchesZip": true
+  },
+  {
+    "path": "README-FIRST.txt",
+    "sha256": "30429b5267f665fb3ca4633b00c1e757d67d52920bd7da2e88dece3c49206206",
+    "matchesZip": true
+  },
+  {
+    "path": "RUN_BROWSER_WINDOWS.cmd",
+    "sha256": "ca7fd58aaab762e5cac04286e89c8c02c5a8ec9adb3d14fd3237312adc6f3794",
+    "matchesZip": true
+  },
+  {
+    "path": "RUN_R46_TESTS.cmd",
+    "sha256": "42a7220016e454ea77469af1cbdb507ef82060cee89c2e5bdf32337988ae3e48",
+    "matchesZip": true
+  },
+  {
+    "path": "RUN_R51_NODE_TESTS.cmd",
+    "sha256": "bbcb2de8238c4a4f227970fc4c86ad713ef4f98e5126db4d5686a0a6833675d4",
+    "matchesZip": true
+  },
+  {
+    "path": "index.html",
+    "sha256": "ac4158d3ab0fe4c4f4602c1f9c1a6045b19eecd29f4f9511c5c2ac5889793f3d",
+    "matchesZip": true
+  },
+  {
+    "path": "moya_r46_dom_regression.js",
+    "sha256": "e558da6e5640b03e679f0f15549287b81d4141c23fe7e03b75d746d77fb99ca4",
+    "matchesZip": true
+  },
+  {
+    "path": "moya_r46_safe_to_buy_regression.js",
+    "sha256": "0541fdfd0becaec736d997c1015fa0e1388fbd0028f1510903717797fb1b6e48",
+    "matchesZip": true
+  },
+  {
+    "path": "r51_release_gate_check.py",
+    "sha256": "1b684780a17f533736eb2ed9d133fe4adafad561e0be7417973bfa41dfb12c0b",
+    "matchesZip": true
+  },
+  {
+    "path": "reference-r41/index.html",
+    "sha256": "487abe5d52112e1c9637d1d3748f0a8658722e127b8c3187ac80d06fcb25d84a",
+    "matchesZip": true
+  }
+]
