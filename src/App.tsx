@@ -34,6 +34,7 @@ export default function App() {
   const outcome=snapshot?.comparison.strategies[selected].outcomes[pathIndex];
   return <main>
     <header><p className="eyebrow">OPERATION 009 · DECISION SUPPORT</p><h1>{foundation.product}</h1><p className="intro">See the trade-offs before you buy stock.</p><p>Explore three strategies using your reported funds and assumptions. Nothing here moves money or verifies a bank balance.</p></header>
+    <p className="notice">Sonaroraaah is an independent financial planning prototype created for a hackathon. It is not an official FNB service, is not affiliated with or endorsed by FNB, and does not connect to real bank accounts or make payments. All results are modelled simulations based on information entered by the user.</p>
     <nav aria-label="Workflow"><a href="#inputs">1. Your inputs</a><a href="#comparison">2. Compare strategies</a><a href="#safe-to-buy">3. Staged purchase</a></nav>
     <div className="toolbar"><button type="button" onClick={()=>{edit(exampleDraft,exampleSafe);setSelected('now');setPath(0);}}>Load illustrative example</button><button type="button" onClick={()=>{dispatch({type:'reset'});setSelected('now');setPath(0);}}>New decision session</button></div>
     <p className="notice">Illustrative examples are invented, not live customer data. All amounts are rand; enter 0 explicitly for an absent amount. Input days and sales lags are 1–14; the model closes on Day 30.</p>
