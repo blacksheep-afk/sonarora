@@ -11,6 +11,8 @@ const commands = [
   ['architecture', 'scripts/check-architecture.mjs'],
   ['build', 'node_modules/vite/bin/vite.js', 'build'],
   ['application-browser', 'scripts/application-browser.mjs'],
+  ['historical-browser', 'scripts/historical-browser.mjs'],
+  ['cross-browser', 'scripts/cross-browser.mjs'],
 ];
 for (const [name, ...args] of commands) {
   console.log(`\nQuality gate: ${name}`);

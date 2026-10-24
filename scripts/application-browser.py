@@ -7,14 +7,26 @@ import subprocess
 import sys
 import time
 import urllib.request
+from urllib.parse import urlsplit
+from hardening_browser import run_hardening
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parent.parent
-OUTPUT = ROOT / 'test-results' / 'application'
+FAMILY = os.environ.get('SONARORAAAH_BROWSER','chromium')
+OUTPUT = ROOT / 'test-results' / ('application' if FAMILY=='chromium' else 'application-'+FAMILY)
 OUTPUT.mkdir(parents=True, exist_ok=True)
 checks = []
+(OUTPUT/'results.json').write_text(json.dumps({'status':'running','family':FAMILY}),encoding='utf-8')
 def check(condition, name):
     if not condition:
+        detail={'assertion':name}
+        if globals().get('page') is not None:
+            try:
+                detail['activeElement']=page.evaluate("({tag:document.activeElement.tagName,id:document.activeElement.id,text:document.activeElement.textContent})")
+                page.screenshot(path=str(OUTPUT/'failure.png'),full_page=False)
+            except Exception as capture_error:
+                detail['captureError']=str(capture_error)
+        (OUTPUT/'failure-detail.json').write_text(json.dumps(detail,indent=2),encoding='utf-8')
         raise AssertionError(name)
     checks.append(name)
     print('PASS ' + name, flush=True)
@@ -39,8 +51,12 @@ try:
     else:
         raise RuntimeError('Production preview did not become ready')
     with sync_playwright() as pw:
+        if FAMILY in ['firefox','webkit']:
+            browser=getattr(pw,FAMILY).launch(headless=True)
+        elif FAMILY!='chromium':
+            raise RuntimeError('Unsupported browser family: '+FAMILY)
         launch_errors = []
-        for channel in ['msedge', None]:
+        for channel in (['msedge', None] if FAMILY=='chromium' else []):
             try:
                 browser = pw.chromium.launch(headless=True, **({'channel': channel} if channel else {}))
                 break
@@ -48,11 +64,12 @@ try:
                 launch_errors.append(str(error))
         if browser is None:
             raise RuntimeError('No approved Playwright browser available: ' + '\n'.join(launch_errors))
+        browser_version=browser.version
         page = browser.new_page(viewport={'width':1280,'height':900})
         errors = []
         external = []
         page.on('pageerror', lambda error: errors.append(str(error)))
-        page.on('request', lambda request: external.append(request.url) if not request.url.startswith(origin) and not request.url.startswith('data:') else None)
+        page.on('request', lambda request: external.append(request.url) if urlsplit(request.url).netloc!=urlsplit(origin).netloc and not request.url.startswith('data:') else None)
         page.goto(origin)
         page.get_by_role('heading', name='Sonaroraaah', exact=True).wait_for()
         check(page.locator('[data-strategy]').count() == 0, 'Blank session contains no financial outputs')
@@ -168,12 +185,16 @@ try:
             await new Promise(resolve=>setTimeout(resolve,100));
         }""")
         check(page.locator('[data-strategy]').count()==0 and page.locator('#cash').input_value()=='','Delayed comparison cannot populate a new decision session')
+        hardening=run_hardening(page,check,OUTPUT,ROOT)
         check(not external,'Application makes no external network requests')
         check(not errors,'No application browser exceptions')
         browser.close()
         browser=None
-    (OUTPUT/'results.json').write_text(json.dumps({'passed':len(checks),'checks':checks,'viewports':[1280,390,320],'screenshots':['desktop.png','mobile.png']},indent=2),encoding='utf-8')
+    (OUTPUT/'results.json').write_text(json.dumps({'status':'passed','family':FAMILY,'browserVersion':browser_version,'passed':len(checks),'baselineAssertions':40,'hardeningAssertions':len(checks)-40,'checks':checks,'hardening':hardening,'viewports':[1280,390,320],'screenshots':['desktop.png','mobile.png','hardened-desktop.png','hardened-mobile.png']},indent=2),encoding='utf-8')
     print(str(len(checks))+'/'+str(len(checks))+' application browser checks passed',flush=True)
+except BaseException as error:
+    (OUTPUT/'results.json').write_text(json.dumps({'status':'failed','family':FAMILY,'browserVersion':locals().get('browser_version'),'passedBeforeFailure':len(checks),'error':str(error)},indent=2),encoding='utf-8')
+    raise
 finally:
     if browser is not None:
         try:

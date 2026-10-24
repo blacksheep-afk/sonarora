@@ -10,14 +10,16 @@ export function inspectApplication(file:string,text:string):readonly string[] {
  const errors:string[]=[],allowed=APPLICATION_IMPORTS[file];
  if(!allowed)return [file+': unregistered application module'];
  const ast=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true,file.endsWith('tsx')?ts.ScriptKind.TSX:ts.ScriptKind.TS);
- const forbidden=['fetch','XMLHttpRequest','WebSocket','localStorage','sessionStorage','indexedDB','sendBeacon','require','eval','Function'];
+ const forbidden=['fetch','XMLHttpRequest','WebSocket','localStorage','sessionStorage','indexedDB','sendBeacon','require','eval','Function','innerHTML','outerHTML','insertAdjacentHTML','dangerouslySetInnerHTML','srcDoc','cookie','globalThis','self','EventSource'];
  if(file.startsWith('application/'))forbidden.push('window','document','navigator','process','Buffer');
  function dependency(value:string){if(!allowed?.includes(value))errors.push(file+': forbidden dependency '+value);}
  function visit(n:ts.Node){
   if(ts.isImportDeclaration(n)||ts.isExportDeclaration(n)){if(n.moduleSpecifier&&ts.isStringLiteral(n.moduleSpecifier))dependency(n.moduleSpecifier.text);}
   if(ts.isImportEqualsDeclaration(n))errors.push(file+': import equals forbidden');
   if(ts.isImportTypeNode(n)&&ts.isLiteralTypeNode(n.argument)&&ts.isStringLiteral(n.argument.literal))dependency(n.argument.literal.text);
+  if(ts.isElementAccessExpression(n) && n.argumentExpression && (ts.isStringLiteral(n.argumentExpression)||ts.isNoSubstitutionTemplateLiteral(n.argumentExpression)) && forbidden.includes(n.argumentExpression.text)) errors.push(file+': forbidden computed capability '+n.argumentExpression.text);
   if(ts.isIdentifier(n)&&forbidden.includes(n.text))errors.push(file+': forbidden capability '+n.text);
+  if(ts.isCallExpression(n) && ts.isIdentifier(n.expression) && ['setTimeout','setInterval'].includes(n.expression.text) && n.arguments[0] && (ts.isStringLiteral(n.arguments[0]) || ts.isNoSubstitutionTemplateLiteral(n.arguments[0]))) errors.push(file+': string code timer forbidden');
   if(ts.isCallExpression(n)&&n.expression.kind===ts.SyntaxKind.ImportKeyword)errors.push(file+': dynamic import forbidden');
   ts.forEachChild(n,visit);
  }

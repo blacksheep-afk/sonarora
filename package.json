@@ -16,7 +16,10 @@
     "build": "vite build",
     "check": "node scripts/quality-gate.mjs",
     "test:browser": "node scripts/application-browser.mjs",
-    "gate:self-test": "node scripts/gate-self-test.mjs"
+    "gate:self-test": "node scripts/gate-self-test.mjs",
+    "test:cross-browser": "node scripts/cross-browser.mjs",
+    "accessibility:self-test": "node scripts/accessibility-self-test.mjs",
+    "test:reference-browser": "node scripts/historical-browser.mjs"
   },
   "dependencies": {
     "react": "19.3.1",
@@ -29,6 +32,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
+    "axe-core": "4.14.0",
     "eslint": "10.13.0",
     "globals": "17.13.0",
     "jsdom": "30.1.3",

@@ -40,3 +40,14 @@ li { margin-block: .6rem; overflow-wrap: anywhere; }
 footer { border-top: 1px solid #b8dfcb; margin-top: 3rem; font-size: .9rem; }
 @media (max-width: 58rem) { .strategies { grid-template-columns: 1fr; } }
 @media (max-width: 30rem) { fieldset, details, article, .notice, .money-map { padding: .9rem; } .toolbar button { width: 100%; } }
+
+/* Sprint 4: native targets, long copy and enlarged text retain the original palette. */
+body { overflow-wrap: anywhere; }
+nav a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: .4rem; }
+summary { min-height: 2.75rem; padding-block: .6rem; }
+.check { min-height: 2.75rem; align-items: center; padding-block: .35rem; }
+.error-summary a { display: inline-block; min-height: 2.75rem; padding-block: .5rem; }
+.field { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

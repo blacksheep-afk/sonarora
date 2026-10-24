@@ -8,4 +8,4 @@ const bundled=resolve(homedir(),'.cache/codex-runtimes/codex-primary-runtime/dep
 const python=process.env.SONARORAAAH_PYTHON || (existsSync(bundled)?bundled:'python');
 const result=spawnSync(python,['-u','scripts/application-browser.py',process.execPath],{cwd:root,stdio:'inherit',env:{...process.env,PYTHONPATH:[resolve(root,'.python-deps'),process.env.PYTHONPATH].filter(Boolean).join(delimiter)},windowsHide:true,timeout:180000});
 if(result.error)console.error(result.error.message);
-if(result.error||result.status!==0){console.error('Application browser gate failed. Requires Python, pinned Playwright and an installed Edge or Playwright Chromium browser.');process.exit(1);}
+if(result.error||result.status!==0){console.error('Application browser gate failed; see preceding diagnostics. Requires Python, pinned Playwright and the requested browser family.');process.exit(1);}
