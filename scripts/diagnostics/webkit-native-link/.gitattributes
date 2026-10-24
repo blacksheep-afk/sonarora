@@ -1,0 +1,2 @@
+native.html -text whitespace=cr-at-eol
+linux-native-probe.py -text whitespace=cr-at-eol
