@@ -15,7 +15,7 @@ jobs:
       run:
         shell: bash
     env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sonaroraaah-diagnostic-webkit
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.diagnostic-playwright-browsers
       PYTHONUNBUFFERED: "1"
       PYTHONDONTWRITEBYTECODE: "1"
     steps:
