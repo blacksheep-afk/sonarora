@@ -1,25 +1,144 @@
 # Sonaroraaah
 
-Operation 009. Sprint 0 is accepted. Sprint 1 is accepted. Sprint 2 implements the isolated financial engine; deployment and Sprint 3 remain unapproved.
+## 1. What Sonaroraaah does
 
-React + TypeScript + Vite foundation only. No financial engine, bank connection, storage or payments.
+Sonaroraaah is a financial decision-support prototype for people with irregular income and small traders weighing a stock purchase against essential bills. It makes timing, uncertain receipts and unpaid obligations visible so users can explore trade-offs. It does not recommend a transaction or move money.
 
-## Verification
+## 2. Try the application
 
-Use Node 24 and the committed lockfile: `npm ci`, then `npm run gate:self-test` and `npm run check`.
-Individual stages: `npm run lint`, `npm run typecheck`, `npm test`, `npm run reference:check`, `npm run build`.
-The full gate fails closed if historical reference files are absent or altered.
+**[Open the live application](https://sonaroraaah.vercel.app/). No login is required.** Use invented information to explore the prototype. Click **Load illustrative example** for a reproducible starting point; the application otherwise starts with empty financial inputs.
 
-## Branches
+Financial information is held in the current browser session's memory. Reloading the page or choosing **New decision session** clears it. There is no application account, database or saved history.
 
-`main` is the intended protected release branch; `develop` is the integration branch. Local branch names do not establish GitHub protection. Require pull requests, a passing `quality` check, review, no force pushes and no deletions on main once permissions permit. No deployment workflow is included.
+## 3. Implemented features
 
-## Evidence
+- Separate cleared cash/bank funds from expected customer receipts, with known or unknown receipt timing.
+- Enter two essential bills with a shared due day and payment priority, stock cost, estimated gross sales, sales lag and an emergency expense.
+- Explore independent or linked receipt/sales probability assumptions.
+- Compare **Buy now**, **Protect the bill first** and **Purchase conditionally after receipt** using modelled essential-payment shortfall risk, unpaid amounts, ending balance, net after unpaid obligations and purchasing likelihood.
+- Inspect **Money Map**, a timeline of one possible engine outcome, including purchases, receipts, sales, payments and outstanding obligations.
+- Check a staged purchase using supplier terms, delivery fees, starter affordability, original bill reconciliation, reported receipts, refreshed funds and reserves. States include Incomplete, Blocked, Locked and modelled feasible.
+- Receive structured field errors and failure messages. Relevant edits immediately invalidate comparison/staged results and dependent confirmations; session and revision checks reject delayed old results.
 
-See `docs/SPRINT-0-REPORT.md` for actual checks, blockers and provenance. Original R51 files must be copied byte-for-byte and verified before committing. Transcript hashes and historical test counts are not new verification.
+## 4. Quick demonstration with invented information
 
-## Engine
+Click **Load illustrative example**, then **Compare three strategies**. The example uses these assumptions, not live customer data:
 
-Engine contracts and tested financial implementations live under src/engine. The existing UI shell is unchanged and is not connected to these APIs.
+| Input | Value |
+| --- | --- |
+| Cleared cash / cleared bank funds | R600 / R0 |
+| Expected customer receipt | R300 |
+| Receipt timing / probability | Known: Day 2 / 0.75 |
+| Essential bill 1 / bill 2 | R500 / R0 |
+| Shared bill due day / priority | Day 3 / Bill 1 first |
+| Full stock cost / estimated gross sales | R250 / R400 |
+| Purchase-to-sales lag / sales probability | 2 days / 0.75 |
+| Probability relationship | Independent |
+| Emergency expense / day | R0 / Day 3 |
 
-See [Architecture](docs/ARCHITECTURE.md), [Financial contracts](docs/FINANCIAL-CONTRACTS.md), [State contracts](docs/STATE-CONTRACTS.md), [Reference cases](docs/REFERENCE-CASES.md) and [Sprint 1 report](docs/SPRINT-1-REPORT.md) and [Sprint 2 report](docs/SPRINT-2-REPORT.md). The typecheck command verifies both application/tests and the engine without DOM or Node ambient types.
+Recorded outputs verified on the accepted production application:
+
+| Strategy | Modelled essential shortfall risk | Expected unpaid obligations | Expected end balance | Expected net after unpaid amounts | Purchasing likelihood |
+| --- | --- | --- | --- | --- | --- |
+| Buy now | 6.25% | R9.38 | R384.38 | R375.00 | 100% |
+| Protect the bill first | 0% | R0.00 | R362.50 | R362.50 | 75% |
+| Purchase conditionally after receipt | 0% | R0.00 | R362.50 | R362.50 | 75% |
+
+Zero modelled risk in this example is not a guarantee. A higher expected balance is not automatically the preferred decision. Gross sales are not profit.
+
+1. In Money Map, select **Buy now**, then **Receipt does not arrive; sales do not succeed (6.25% modelled weight)**. The path pays R350 toward the R500 bill, leaving R150 unpaid, ending cash R0 and net after unpaid R-150.
+2. In **Check a staged purchase**, inspect the illustrative supplier and report settings. With confirmations unchecked, the starter is modelled feasible and the later batch is Locked.
+3. Treat the example's R300 reported bill payment, R200 outstanding bill and R350 refreshed balance as a separate hypothetical later checkpoint, not a balance automatically generated by the comparison. The refreshed balance already includes the reported receipt. Confirm the three current reports, then check again: the later batch is modelled feasible, with R150 available for its R150 cost.
+4. Change the refreshed balance to R349.99. Previous results and confirmations disappear. Even after reconfirming, the later batch stays Locked: R149.99 is available for a R150 cost.
+5. Choose **New decision session** to clear the example. A user confirmation is never independent bank verification; modelled feasible does not authorise a purchase.
+
+## 5. Architecture and technical documentation
+
+The application uses **React, TypeScript and Vite**. React sends raw text drafts through an application adapter that validates them before invoking the engine, translates structured errors/reasons and returns immutable snapshots. A session layer checks input revisions and request/session identities. React does not duplicate financial calculations.
+
+The engine has nine modules: money, scenario, validation, probability, simulation, comparison, safe-to-buy, state and explanations. Canonical transaction money uses bounded integer cents. The engine compiles without React, DOM or Node ambient types and has no network, storage or payment capability. Architecture policies and tests enforce the declared boundaries; they are not a complete security sandbox.
+
+- [Architecture and dependency boundaries](docs/ARCHITECTURE.md)
+- [Financial contracts and retained R51 behaviour](docs/FINANCIAL-CONTRACTS.md)
+- [State and revision contracts](docs/STATE-CONTRACTS.md)
+- [Reference cases](docs/REFERENCE-CASES.md)
+- Historical reports: [Sprint 0](docs/SPRINT-0-REPORT.md), [Sprint 1](docs/SPRINT-1-REPORT.md), [Sprint 2](docs/SPRINT-2-REPORT.md), [Sprint 3](docs/SPRINT-3-REPORT.md), [Sprint 4](docs/SPRINT-4-REPORT.md)
+- [Accessibility audit](docs/ACCESSIBILITY-AUDIT.md), [security/privacy review](docs/SECURITY-PRIVACY-REVIEW.md), [cross-browser results](docs/CROSS-BROWSER-RESULTS.md) and [Linux WebKit diagnostic](docs/LINUX-WEBKIT-DIAGNOSTIC.md)
+
+These documents retain their original sprint-time findings, including earlier uncommitted/blocked status. They are historical snapshots, not the current release decision; sections 7 and 8 below record the later accepted evidence and production status.
+
+## 6. Install, run and test
+
+Use **Node.js 24.x**, npm and the committed lockfile. Run commands from the repository root:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the development URL printed by Vite. Build static production assets with:
+
+```sh
+npm run build
+```
+
+The output is `dist/`, with `dist/index.html` as the entry point. Navigation uses page anchors; the current application has no client-side route requiring an SPA rewrite. No application environment variables or banking credentials are required.
+
+Browser checks additionally require **Python 3.13** (as used in CI), **Playwright 1.64.1** from `requirements-browser.txt`, and installed browser binaries. PowerShell setup for a local checkout is:
+
+```powershell
+$env:SONARORAAAH_PYTHON = (Get-Command python).Source
+python -m pip install --target .python-deps -r requirements-browser.txt
+$env:PYTHONPATH = Join-Path (Get-Location) '.python-deps'
+$env:PLAYWRIGHT_BROWSERS_PATH = Join-Path (Get-Location) '.browser-cache'
+python -m playwright install chromium firefox webkit
+```
+
+The explicit Python selection makes the Node wrappers use that interpreter rather than a locally bundled runtime. Cross-browser checks use the repository's `.browser-cache`. On supported Ubuntu, browser system dependencies are also required; [CI](.github/workflows/quality.yml) uses `python -m playwright install --with-deps chromium firefox webkit`. Missing tooling, installation failures and failed assertions are failures, not passing results.
+
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run reference:check
+npm run architecture:check
+npm run build
+npm run test:browser
+npm run test:reference-browser
+npm run test:cross-browser
+npm run gate:self-test
+npm run accessibility:self-test
+npm run check
+```
+
+Run the build before individual browser suites; they exercise built assets. `npm run check` performs lint, both TypeScript checks, Vitest, reference checks, architecture checks, build, application browser tests, historical browser tests and Firefox/WebKit tests. The two self-tests are separate commands, also required by CI: they confirm deliberate test/accessibility defects fail the gate. The accessibility self-test checks for its specific injected defect rather than accepting any unrelated failure.
+
+**Windows exception:** the unchanged full gate exits 1 when local WebKit skips native workflow links during plain Tab navigation. This is an accepted, investigated platform limitation, not a fully passing Windows gate. Do not skip assertions, add blanket tab indices or interpret this as an Ubuntu failure. No checks were rerun merely to write this README.
+
+## 7. Verification evidence and known limitations
+
+As reviewed on **24 October 2026**, the [post-merge Ubuntu quality job for the accepted production commit](https://github.com/blacksheep-afk/sonaroraaah/actions/runs/40097642015/job/120883135416) completed successfully. Its recorded steps include clean installation, both negative-control self-tests and the complete quality gate. This is verified remote execution evidence, not a new local test run made for this documentation update.
+
+Previously recorded local verification includes **306 unit tests**, **72 Chromium-family application/browser checks**, **72 Firefox checks**, **18 historical browser checks**, 2,541 historical adversarial checks, 82 core/UI and 51 Safe-to-Buy reference checks, plus independent mathematical expectations and R51 parity cases. These are different test/check categories, not a combined count of independent financial scenarios. The recorded Chromium/Firefox accessibility evidence includes 12 axe scans with zero reported violations. Automated scans are not complete WCAG certification.
+
+The successful Ubuntu gate includes actual Firefox and WebKit execution. The separate Ubuntu native-link diagnostic focused the link on Tabs 1 and 5; local Windows WebKit skipped it in headed and headless experiments. The Windows limitation remains documented and the declined tabindex workaround remains unapplied. Physical-phone, screen-reader and comprehensive unaided-user testing are not established.
+
+Important financial and privacy limits:
+
+- All balances, receipts, probabilities, supplier terms and confirmations are user-reported assumptions, not independently verified information or predictions. No strategy is automatically recommended; results are not financial advice.
+- Individual money inputs are limited to R10,000,000; aggregate/intermediate amounts to R1 billion. Input days and sales lags are 1-14, with simulation closing on Day 30. The model supports two bills with one shared due day, not unrestricted calendar planning.
+- Transaction paths use integer cents, but weighted expectations deliberately retain R51 binary arithmetic. For example, 50 cents times 0.29 can display R0.14 instead of decimal half-up R0.15. Expected metrics round separately and may not visibly subtract exactly. Tiny paths at or below the retained threshold are omitted without renormalisation.
+- Protect the bill first is a historical timing strategy: it may buy after a missed essential payment. Later receipts do not automatically settle earlier unpaid bills. Unknown receipt dates exclude receipts from simulated cash.
+- Essential-payment risk excludes emergency-only unpaid expenses; combined unpaid amounts and net include them. Net after unpaid obligations is not spendable cash. Gross sales and modelled sales surplus are not profit; unentered taxes, interest and expenses are not invented.
+- There is no banking API, authentication, backend, analytics, database, payment execution, trained ML or application persistence. Reset/reload clears data. Earlier tested live workflows showed no unexpected financial-data transmission, but this is not an exhaustive privacy or security guarantee.
+- Static policies, limited credential scans and recorded dependency reviews do not prove the absence of vulnerabilities. The quality gate contains security-policy tests but does not itself run `npm audit`. Prior dependency audit results are dated evidence, not a continuously current assurance. Wider hosting/security and accessibility assessment remains future hardening.
+
+Original R51 artifacts are preserved in `reference/R51/`. Integrity checks verify their recorded hashes; do not modify them. The standalone and evidence HTML SHA-256 is `ac4158d3ab0fe4c4f4602c1f9c1a6045b19eecd29f4f9511c5c2ac5889793f3d`; the portable ZIP SHA-256 is `79ddd49c3a4f7962af497b92c23fb0b810a17076dc925d8f028efd9c6a2f36fe`. R19/R37/R51 historical material is not to be changed to make tests pass.
+
+## 8. Accepted release and independent status
+
+Operation 009's agreed Sprint 0-4 hackathon prototype scope is accepted and deployed. The accepted production release is commit [`8436cdcbb56c946ff9f556be5ceba65c95a18439`](https://github.com/blacksheep-afk/sonaroraaah/commit/8436cdcbb56c946ff9f556be5ceba65c95a18439), integrating the four approved usability and test-expectation commits through [PR #2](https://github.com/blacksheep-afk/sonaroraaah/pull/2). [Vercel deployment evidence](https://vercel.com/black-sheep7/sonaroraaah/HUiu6KbmabjwQ96FEHqx93p4ovbX) records completion, and the live application was checked against the recorded example outputs.
+
+The application is hosted on Vercel with GitHub integration. `main` is the accepted stable application branch; `develop` is the development/testing branch. These roles do not assert GitHub branch protection is enabled. The completion audit found neither branch marked protected. Reviewed pull requests and passing checks remain the intended publication process; only Chief controls pushes. Software acceptance does not establish completion of the separate hackathon submission requirements.
+
+Sonaroraaah is an independent financial planning prototype created for a hackathon. It is not an official FNB service, is not affiliated with or endorsed by FNB, and does not connect to real bank accounts or make payments. All results are modelled simulations based on information entered by the user.
