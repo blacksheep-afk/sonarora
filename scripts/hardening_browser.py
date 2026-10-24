@@ -50,7 +50,7 @@ def run_hardening(page, check, output, root):
         page.locator('[data-strategy=trigger]').wait_for()
     def confirm():
         for kind in ['receipt','balance','liabilities']:
-            page.get_by_role('checkbox',name='I confirm the current '+kind+' report; it is not independently verified.',exact=True).check()
+            page.get_by_role('checkbox',name=('I confirm my current report of bill payments and money still owed; it is not independently verified.' if kind=='liabilities' else 'I confirm the current '+kind+' report; it is not independently verified.'),exact=True).check()
     def staged():
         page.get_by_role('button',name='Check staged purchase',exact=True).click()
         page.get_by_role('heading',name='Starter: modelled feasible',exact=True).wait_for()
