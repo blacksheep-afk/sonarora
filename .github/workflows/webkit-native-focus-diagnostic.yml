@@ -1,0 +1,72 @@
+name: Ubuntu WebKit native-link diagnostic
+run-name: Native WebKit focus diagnostic (manual, no application acceptance)
+
+"on":
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-focus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/sonaroraaah-diagnostic-webkit
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Check out diagnostic source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          clean: false
+
+      - name: Prepare evidence directory
+        run: |
+          mkdir -p diagnostic-results
+          git rev-parse HEAD > diagnostic-results/checkout-commit.txt
+          uname -a > diagnostic-results/kernel.txt
+          cat /etc/os-release > diagnostic-results/os-release.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Verify exact preserved native fixture and portable probe
+        run: python scripts/diagnostics/webkit-native-link/verify-evidence.py sources diagnostic-results
+
+      - name: Install exact-pinned Playwright
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.64.1 2>&1 | tee diagnostic-results/playwright-install.log
+
+      - name: Record environment and verify installed Playwright version
+        run: |
+          python scripts/diagnostics/webkit-native-link/verify-evidence.py preflight diagnostic-results
+          python -m pip freeze > diagnostic-results/python-packages.txt
+          cp scripts/diagnostics/webkit-native-link/native.html diagnostic-results/native.html
+          cp scripts/diagnostics/webkit-native-link/linux-native-probe.py diagnostic-results/linux-native-probe.py
+
+      - name: Install supported WebKit and Linux system dependencies
+        run: |
+          python -m playwright install --with-deps webkit 2>&1 | tee diagnostic-results/webkit-install.log
+
+      - name: Record eight plain-Tab observations
+        run: |
+          python scripts/diagnostics/webkit-native-link/linux-native-probe.py scripts/diagnostics/webkit-native-link/native.html > diagnostic-results/focus.json 2> diagnostic-results/probe-stderr.log
+
+      - name: Validate and describe diagnostic evidence without granting acceptance
+        run: python scripts/diagnostics/webkit-native-link/verify-evidence.py interpret diagnostic-results
+
+      - name: Upload evidence even after an installation or browser failure
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-webkit-native-focus-${{ github.run_id }}-${{ github.run_attempt }}
+          path: diagnostic-results/
+          if-no-files-found: error
+          retention-days: 14
