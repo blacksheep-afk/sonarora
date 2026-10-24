@@ -15,6 +15,7 @@
     "architecture:check": "node scripts/check-architecture.mjs",
     "build": "vite build",
     "check": "node scripts/quality-gate.mjs",
+    "test:browser": "node scripts/application-browser.mjs",
     "gate:self-test": "node scripts/gate-self-test.mjs"
   },
   "dependencies": {

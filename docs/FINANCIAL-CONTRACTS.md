@@ -1,4 +1,4 @@
-# Implemented financial contracts — Sprint 2
+# Implemented financial contracts — Sprint 3 integration
 
 ## Exact money and precision
 
@@ -12,7 +12,7 @@ Expected monetary values use separate numeric probability weights. Products and 
 
 ## Validated scenarios
 
-Raw money/probability/day fields are text. Probability drafts use 0..1 rates, not UI percentages; the old UI is not connected. Numeric day/probability parsing retains R51's finite Number semantics, with integer/range checks for days. Money parsing is deliberately stricter than numeric probability parsing.
+Raw money/probability/day fields are text. Probability drafts use 0..1 rates, not UI percentages; the application form explicitly uses the same 0..1 rate units. Numeric day/probability parsing retains R51's finite Number semantics, with integer/range checks for days. Money parsing is deliberately stricter than numeric probability parsing.
 
 validateScenario returns a structured failure with nonempty issues or a deeply frozen owned ValidatedScenario. It validates all money, days 1..14, receipt known/unknown timing, bill IDs/count/priority, duplicate IDs, a shared due day, independent/linked mode and probability bounds. Unsupported correlations and horizons are rejected. Expected receipts remain expected-not-cleared, separate from opening cleared cash/bank funds.
 
@@ -48,4 +48,12 @@ Receipt, balance and liability attestations must match inputRevision and explici
 
 Sprint 1's proposed function aliases now return structured results. Simulation accepts ValidatedScenario; comparison starts from ScenarioDraft rather than accepting arbitrary precomputed outcomes. Safe planning checks cent-denominated inputs at runtime. New result provenance, diagnostics and closure metadata are contract corrections, not changes to historical monetary decisions.
 
-Ordinary input failures carry validation codes/paths, not raw values or generic exceptions. Type assertions and hostile JavaScript getters/proxies remain outside a comprehensive security guarantee. Raw supplier-draft/UI adapters, real-world verification, cross-session asynchronous routing, exact rational expected-value policy and production assurance remain future work.
+Ordinary input failures carry validation codes/paths, not raw values or generic exceptions. Type assertions and hostile JavaScript getters/proxies remain outside a comprehensive security guarantee. Raw supplier-draft/UI adaptation and cross-session routing are implemented below. Real-world verification, exact rational expected-value policy and production assurance remain future work.
+
+## Sprint 3 implemented host boundary
+
+The previously proposed raw-draft adapter is now implemented in src/application/adapter.ts. Forms use decimal money text and explicit 0..1 probability rates. Blank amounts fail; the interface never treats blank as zero. The only filled example is explicitly user-loaded and labelled illustrative, with confirmations initially unchecked. Receipt timing has known/unknown modes and unknown mode does not invent a day. Two essential bills retain the R51 shared due date and explicit priority.
+
+Supplier and staged-purchase text crosses parseMoney before the engine. Partial payments require separately entered paid and outstanding amounts; the engine checks original minus paid exactly. Contradictions against zero original bills are rejected at the adapter instead of silently dropping a reported payment. Reported receipt/balance snapshots are optional and explicit; a missing report cannot acquire a confirmation through ordinary UI controls. All confirmations remain user-reported and independentlyVerified=false. The refreshed balance already includes the receipt and is passed unchanged.
+
+Cards display engine risk, essential shortfall, combined unpaid exposure, per-bill unpaid amounts, ending cash, net after unpaid and purchasing likelihood. Money Map lists actual engine events from one selectable outcome with its modelled probability weight, starting reported cleared funds and separate essential/emergency unpaid amounts. This path is hypothetical, not a prediction. Weighted averages are not described as a guaranteed path. Diagnostic staged amounts come directly from planSafeToBuy. The UI repeats the retained wait-with-unpaid-bills, unknown receipt exclusion and rounding limitations. No engine policy changed in Sprint 3.

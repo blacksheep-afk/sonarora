@@ -1,0 +1,19 @@
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Root } from 'react-dom/client';
+import App from '../src/App';
+import * as adapter from '../src/application/adapter';
+let host:HTMLDivElement,root:Root;
+beforeEach(()=>{Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});host=document.createElement('div');document.body.append(host);root=createRoot(host);act(()=>root.render(<App/>));});
+afterEach(()=>{act(()=>root.unmount());host.remove();vi.useRealTimers();vi.restoreAllMocks();});
+function button(text:string):HTMLButtonElement {const b=[...host.querySelectorAll('button')].find(e=>e.textContent===text);if(!b)throw new Error(text);return b;}
+async function click(text:string){await act(async()=>{button(text).click();await new Promise(r=>setTimeout(r,20));});}
+function input(id:string,value:string){const node=host.querySelector<HTMLInputElement>('#'+id)!;act(()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(node,value);node.dispatchEvent(new Event('input',{bubbles:true}));});}
+describe('actual React integration',()=>{
+ it('submits valid drafts and renders all three engine strategy cards and timeline',async()=>{await click('Load illustrative example');await click('Compare three strategies');expect(host.querySelectorAll('[data-strategy]')).toHaveLength(3);expect(host.textContent).toContain('Day 30');expect(host.textContent).toContain('Not independently verified');});
+ it('removes the comparison synchronously on financial input and never reuses it for invalid text',async()=>{await click('Load illustrative example');await click('Compare three strategies');input('cash','0.001');expect(host.querySelector('[data-strategy]')).toBe(null);await click('Compare three strategies');expect(host.querySelector('#cash')?.getAttribute('aria-invalid')).toBe('true');expect(document.activeElement?.id).toBe('cash');expect(host.textContent).toContain('Fractional cents');});
+ it('shows pending status and disables submissions while a current request is pending',async()=>{await click('Load illustrative example');vi.useFakeTimers();act(()=>button('Compare three strategies').click());expect(host.textContent).toContain('Calculating the current revision');expect(button('Compare three strategies').disabled).toBe(true);act(()=>vi.runAllTimers());expect(host.querySelectorAll('[data-strategy]')).toHaveLength(3);expect(button('Compare three strategies').disabled).toBe(false);});
+ it('shows an unexpected failure and removes prior financial output',async()=>{await click('Load illustrative example');await click('Compare three strategies');vi.spyOn(adapter,'compareDraft').mockImplementationOnce(()=>{throw new Error('test-only unexpected model failure');});await click('Compare three strategies');expect(host.textContent).toContain('The model could not complete. No result is available.');expect(host.querySelector('[data-strategy]')).toBe(null);expect(host.querySelector('[role=alert]')).not.toBe(null);});
+ it('clears confirmations and a staged assessment on edits; resets session to blank',async()=>{await click('Load illustrative example');for(const node of host.querySelectorAll<HTMLInputElement>('input[type=checkbox]'))act(()=>node.click());await click('Check staged purchase');expect(host.textContent).toContain('Later batch: modelled feasible');input('clearedBalance','349.99');expect([...host.querySelectorAll<HTMLInputElement>('input[type=checkbox]')].every(n=>!n.checked)).toBe(true);expect(host.textContent).not.toContain('Later batch: modelled feasible');await click('New decision session');expect(host.querySelector<HTMLInputElement>('#cash')?.value).toBe('');expect(host.querySelector('[data-strategy]')).toBe(null);});
+});
