@@ -183,12 +183,26 @@ def run_hardening(page, check, output, root):
     check(page.evaluate('localStorage.length===0 && sessionStorage.length===0') and not page.context.cookies(),
           'Application leaves local/session storage and cookies empty')
     def luminance(hex_value):
+        if len(hex_value)==4:
+            hex_value='#'+''.join(character*2 for character in hex_value[1:])
         channels=[int(hex_value[i:i+2],16)/255 for i in [1,3,5]]
         linear=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in channels]
         return sum(a*b for a,b in zip(linear,[.2126,.7152,.0722]))
-    background=luminance('#10251f')
-    contrast={color:round((luminance(color)+.05)/(background+.05),2)
-              for color in ['#eaf5ef','#b8dfcb']}
+    # Inspect the shipped semantic palette rather than asserting historical constants.
+    tokens=page.evaluate("""() => {
+        const style=getComputedStyle(document.documentElement);
+        return Object.fromEntries(['foreground','background','primary','primary-foreground',
+            'muted-foreground','surface','risk-high','risk-high-surface',
+            'risk-medium','risk-medium-surface','risk-low','risk-low-surface'].map(
+                name=>[name,style.getPropertyValue('--'+name).trim()]));
+    }""")
+    pairs=[('foreground','background'),('primary-foreground','primary'),
+           ('muted-foreground','surface'),('risk-high','risk-high-surface'),
+           ('risk-medium','risk-medium-surface'),('risk-low','risk-low-surface')]
+    contrast={}
+    for foreground,background in pairs:
+        values=sorted([luminance(tokens[foreground]),luminance(tokens[background])])
+        contrast[foreground+'/'+background]=round((values[1]+.05)/(values[0]+.05),2)
     check(all(value>=4.5 for value in contrast.values()),
-          'Retained foreground/accent and inverse button palette exceed 4.5:1 contrast')
+          'Rendered semantic text, primary button and risk palettes exceed 4.5:1 contrast')
     return {'scans':scans,'contrast':contrast,'zoomScope':'200% CSS text; 320 CSS px reflow proxy, not OS/browser chrome zoom certification'}

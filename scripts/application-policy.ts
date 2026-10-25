@@ -1,8 +1,19 @@
 import ts from 'typescript';
 export const APPLICATION_IMPORTS:Readonly<Record<string,readonly string[]>>={
- 'App.tsx':['react','./foundation','./application/adapter','./application/session'],
+ 'App.tsx':['react','./foundation','./application/adapter','./application/session','./components/ui/button','./components/ui/input','./components/ui/label','./components/AppIcon','@hugeicons/core-free-icons'],
+ 'lib/utils.ts':['clsx', 'tailwind-merge'],
+ 'components/AppIcon.tsx':['@hugeicons/react', 'class-variance-authority', '@/lib/utils'],
+ 'components/ui/card.tsx':['react', '@/lib/utils'],
+ 'components/ui/progress.tsx':['react', '@/lib/utils', 'radix-ui'],
+ 'components/ui/label.tsx':['react', '@/lib/utils', 'radix-ui'],
+ 'components/ui/alert.tsx':['react', 'class-variance-authority', '@/lib/utils'],
+ 'components/ui/badge.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui'],
+ 'components/ui/separator.tsx':['react', '@/lib/utils', 'radix-ui'],
+ 'components/ui/button.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui'],
+ 'components/ui/input.tsx':['react', '@/lib/utils'],
+ 'components/ui/skeleton.tsx':['@/lib/utils'],
  'foundation.ts':[],
- 'main.tsx':['react','react-dom/client','./App','./style.css'],
+ 'main.tsx':['react','react-dom/client','./App','./style.css','@fontsource-variable/manrope/index.css','@fontsource-variable/source-sans-3/index.css'],
  'application/adapter.ts':['../engine/money/index','../engine/validation/index','../engine/comparison/index','../engine/safe-to-buy/index','../engine/state/index','../engine/explanations/index','../engine/simulation/index'],
  'application/session.ts':['../engine/state/index','../engine/validation/index','./adapter'],
 };
