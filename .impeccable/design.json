@@ -1,0 +1,135 @@
+{
+  "format": "sonarora-design-documentation",
+  "version": 1,
+  "schemaNote": "Descriptive sidecar; no external CLI schema compatibility is claimed.",
+  "sources": [
+    "src/style.css",
+    "src/App.tsx",
+    "src/components/DecisionViews.tsx",
+    "src/components/LoadingState.tsx",
+    "src/components/AppIcon.tsx",
+    "src/application/adapter.ts",
+    "src/main.tsx",
+    "index.html",
+    "PRODUCT.md"
+  ],
+  "tokens": {
+    "source": "src/style.css",
+    "colors": {
+      "background": "#f4f8f8",
+      "foreground": "#102d3b",
+      "brand-navy": "#102d3b",
+      "brand-teal": "#007d87",
+      "surface": "#ffffff",
+      "primary": "var(--brand-teal)",
+      "primary-hover": "#006771",
+      "primary-foreground": "#ffffff",
+      "secondary": "#e8f3f4",
+      "secondary-foreground": "#125461",
+      "muted": "#edf2f4",
+      "muted-foreground": "#506471",
+      "accent": "#deeff0",
+      "destructive": "#c73338",
+      "risk-high": "var(--destructive)",
+      "risk-medium": "#9b6500",
+      "risk-low": "#177452",
+      "risk-high-surface": "#fff0ef",
+      "risk-medium-surface": "#fff5df",
+      "risk-low-surface": "#eaf6ef",
+      "border": "#d4e0e5",
+      "input": "#bccdd5",
+      "ring": "var(--brand-teal)"
+    },
+    "radii": {
+      "radius": ".625rem",
+      "radius-input": ".375rem",
+      "radius-panel": ".875rem"
+    },
+    "typography": {
+      "bodyFont": "Source Sans 3 Variable",
+      "headingFont": "Manrope Variable",
+      "bodySize": "16px",
+      "bodyLineHeight": 1.55,
+      "h1": "1.8rem",
+      "h2": "1.5rem",
+      "h3": "1.1rem",
+      "compactResultHeading": "1rem",
+      "compactStrategyHeading": ".9rem",
+      "numerals": "tabular-nums"
+    }
+  },
+  "componentValues": {
+    "source": "src/style.css",
+    "workspaceMaxWidth": "1440px",
+    "workspaceColumns": "minmax(0,1.05fr) minmax(0,1fr)",
+    "mainPanelRadius": "8px",
+    "buttonCardDisclosureRadius": "6px",
+    "compactConceptIcon": {
+      "container": "36px",
+      "glyph": "28px",
+      "radius": "10px"
+    },
+    "phoneInputIcon": {
+      "container": "28px",
+      "glyph": "22px",
+      "radius": "8px"
+    },
+    "mainDonutMaxWidth": "170px",
+    "comparisonDonut": "112px",
+    "intermediateComparisonDonut": "88px",
+    "minimumControlHeight": "44px",
+    "focusOutline": "3px solid var(--ring)",
+    "focusOffset": "3px",
+    "breakpoints": [
+      "1100px",
+      "760px",
+      "480px"
+    ]
+  },
+  "strategyLabels": {
+    "source": "src/components/DecisionViews.tsx",
+    "now": "Buy now",
+    "wait": "Wait until after bill day",
+    "trigger": "Buy after payment arrives"
+  },
+  "loading": {
+    "sources": [
+      "index.html",
+      "src/components/LoadingState.tsx",
+      "src/style.css"
+    ],
+    "wordmark": "Sonarora",
+    "startupTagline": "Protect bills first",
+    "status": "Loading\u2026",
+    "progress": "indeterminate",
+    "startupTrack": {
+      "width": "180px",
+      "height": "5px"
+    },
+    "compactTrack": {
+      "width": "140px",
+      "height": "5px"
+    },
+    "animation": "1.5s ease-in-out infinite alternate",
+    "reducedMotion": "animation disabled",
+    "artificialMinimumDelay": false
+  },
+  "principles": [
+    "plain English",
+    "compact independent input columns",
+    "progressive disclosure",
+    "individual option risks, never summed",
+    "explicit zero and ties",
+    "relative model days",
+    "no transaction recommendation"
+  ],
+  "verification": {
+    "desktopFit": "Default collapsed home and three comparison cards reported visually checked at 1280x900 in redesign; not independently rerun by documenter.",
+    "fullGate": "Inherited WebKit native-Tab failure on baseline and final; no whole-gate pass or accessibility certification claimed."
+  },
+  "delivery": {
+    "approvedFoundationCommit": "24654ad",
+    "newerWork": "uncommitted, awaiting user approval",
+    "pushAuthorized": false
+  }
+}
