@@ -55,10 +55,15 @@ The application AST policy allowlists every source module and dependency, includ
 
 Persistence, independent bank/supplier verification, payments, backend services and predictive ML remain absent. Local CI configuration now installs the pinned Python Playwright dependency and Chromium before the mandatory built-application browser gate; this workflow has not been run on GitHub or pushed.
 
-## Reviewed visual specification
+## Historical Sprint 3 visual specification
 
 Reviewed App.tsx, foundation.ts, style.css, index.html and repository architecture/behavior reports before UI changes. No separate branding/design specification or AGENTS.md exists in the inspected checkout/ancestors. Preserve the existing system-ui font, #10251f background, #eaf5ef text and #b8dfcb accent. The responsive grid, form fieldsets, native details disclosure, semantic timeline and focus styles are new Sprint 3 integration choices using that palette; no new brand palette or font is introduced. Illustrative data is explicitly labelled invented. No strategy is automatically selected as a recommendation.
 
 ## Sprint 4 hardening (uncommitted, exit gate blocked)
 
 The financial engine and nine-module DAG remain unchanged. Application capability checks additionally reject unsafe HTML sinks, cookie/global capability access, known computed sink accesses and string-code timers. Approved axe-core 4.14.0 is a pinned development dependency injected only by browser tests, never an application import. The gate retains all original tests and adds per-state axe/resilience checks, the separate unchanged historical browser suite and Firefox/WebKit execution. Missing tooling or failed assertions return nonzero. Browser evidence is reset to running on each attempt so stale passing results cannot mask a failure. A deliberately unlabeled test input verifies accessibility-failure propagation. WebKit currently fails plain-Tab workflow navigation; Chief instructed that the proposed tabindex zero fix remain unapplied. The gate therefore fails at cross-browser and no Sprint 4 commit/release readiness is claimed.
+
+
+## Current UI redesign foundation — 25 October 2026
+
+The user-authorised redesign on `ui/redesign` replaces the historical dark palette and system font above with the supplied light Sonarora mockup direction. `PRODUCT.md` records preserved product constraints; `DESIGN.md` records the current semantic tokens, locally bundled typefaces, Hugeicons treatment and planned composition. The first foundation slice adds shadcn primitives and explicitly registers every UI module in the application dependency guard. A recursive source inventory continues to reject unregistered application modules. Financial engine dependencies and revision semantics remain unchanged. Foundation verification is recorded in `docs/UI-REDESIGN-VERIFICATION.md`; this is not a claim that the complete redesign is implemented.

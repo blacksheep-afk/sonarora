@@ -4,8 +4,18 @@ import { APPLICATION_IMPORTS, inspectApplication } from './application-policy.ts
 import { inspectEngine, ENGINE_DEPENDENCIES } from './architecture-policy.ts';
 
 const root = new URL('../', import.meta.url);
-assert.deepEqual(new Set(readdirSync(new URL('src/', root))), new Set(['App.tsx', 'foundation.ts', 'main.tsx', 'style.css', 'engine', 'application']));
+assert.deepEqual(new Set(readdirSync(new URL('src/', root))), new Set(['App.tsx', 'foundation.ts', 'main.tsx', 'style.css', 'engine', 'application', 'components', 'lib']));
 assert.deepEqual(new Set(readdirSync(new URL('src/application/', root))),new Set(['adapter.ts','session.ts']));
+// Every UI module remains registered: adding a directory cannot hide a new capability.
+function applicationModules(directory, prefix = '') {
+ return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+  const relative = prefix + entry.name;
+  if (relative === 'engine') return [];
+  if (entry.isDirectory()) return applicationModules(new URL(entry.name + '/', directory), relative + '/');
+  return /\.tsx?$/.test(entry.name) ? [relative] : [];
+ });
+}
+assert.deepEqual(new Set(applicationModules(new URL('src/', root))), new Set(Object.keys(APPLICATION_IMPORTS)));
 for(const file of Object.keys(APPLICATION_IMPORTS)) {
  const errors=inspectApplication(file,readFileSync(new URL('src/'+file,root),'utf8'));
  assert.equal(errors.length,0,errors.join('\n'));

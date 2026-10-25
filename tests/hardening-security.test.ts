@@ -11,10 +11,24 @@ describe('Sprint 4 security/privacy guard',()=>{
  ])('rejects unapproved unsafe application capability: %s',text=>{
   expect(inspectApplication('App.tsx',text).length).toBeGreaterThan(0);
  });
- it('keeps axe development-only and production dependencies unchanged',()=>{
+ it('keeps axe development-only and the explicit UI dependency allowlist',()=>{
   const pkg=JSON.parse(readFileSync('package.json','utf8')) as {dependencies:Record<string,string>;devDependencies:Record<string,string>};
-  expect(pkg.dependencies).toEqual({react:'19.3.1','react-dom':'19.3.1',zod:'4.6.7'});
+  expect(pkg.dependencies).toEqual({
+    "@fontsource-variable/manrope": "5.3.0",
+    "@fontsource-variable/source-sans-3": "5.3.1",
+    "@hugeicons/core-free-icons": "4.3.5",
+    "@hugeicons/react": "1.1.10",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "recharts": "3.8.0",
+    "tailwind-merge": "3.7.0",
+    "zod": "4.6.7"
+});
   expect(pkg.devDependencies['axe-core']).toBe('4.14.0');
   expect(pkg.dependencies['axe-core']).toBeUndefined();
+  expect(pkg.dependencies['lucide-react']).toBeUndefined();
  });
 });

@@ -32,34 +32,57 @@ def run_hardening(page, check, output, root):
                 {'id':v['id'],'targets':[n['target'] for n in v['nodes']]}
                 for v in result['violations']]))
         check(True, 'axe '+name+': zero violations in configured rules')
+    def go_inputs():
+        if not page.locator('#inputs').is_visible():
+            page.get_by_role('link',name='Your money',exact=True).click()
+    def go_staged():
+        if not page.locator('#safe-to-buy').is_visible():
+            page.get_by_role('link',name='Check a purchase',exact=True).click()
+        if not page.locator('.staged-checkpoint').is_visible():
+            page.get_by_role('button',name='I understand and want to continue',exact=True).click()
     def open_details():
+        trigger=page.locator('[data-slot=collapsible-trigger]')
+        if trigger.is_visible() and trigger.get_attribute('data-state')=='closed':
+            trigger.click()
         page.locator('details').evaluate_all('(nodes)=>nodes.forEach(n=>n.open=true)')
     def example():
-        page.get_by_role('button',name='Load illustrative example',exact=True).click()
+        go_inputs()
+        page.get_by_role('button',name='Use example',exact=True).first.click()
         open_details()
     def fill(values):
         open_details()
         for key,value in values.items():
             node=page.locator('#'+key)
+            if node.evaluate("n=>Boolean(n.closest('#safe-to-buy'))"):
+                go_staged()
+            else:
+                go_inputs()
+            open_details()
             if node.evaluate('n=>n.tagName')=='SELECT':
                 node.select_option(value)
             else:
                 node.fill(value)
     def compare():
-        page.get_by_role('button',name='Compare three strategies',exact=True).click()
+        go_inputs()
+        page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
         page.locator('[data-strategy=trigger]').wait_for()
+        open_details()
     def confirm():
+        go_staged()
+        open_details()
         for kind in ['receipt','balance','liabilities']:
-            page.get_by_role('checkbox',name=('I confirm my current report of bill payments and money still owed; it is not independently verified.' if kind=='liabilities' else 'I confirm the current '+kind+' report; it is not independently verified.'),exact=True).check()
+            page.get_by_role('checkbox',name={'receipt':'I confirm the payment I entered. Sonarora has not checked it.','balance':'I confirm the balance I entered. Sonarora has not checked it.','liabilities':'I confirm the bills paid and money still owed. Sonarora has not checked this.'}[kind],exact=True).check()
     def staged():
-        page.get_by_role('button',name='Check staged purchase',exact=True).click()
-        page.get_by_role('heading',name='Starter: modelled feasible',exact=True).wait_for()
+        go_staged()
+        open_details()
+        page.get_by_role('button',name='Check smaller purchases',exact=True).click()
+        page.get_by_role('heading',name='First purchase: fits these numbers',exact=True).wait_for()
     def no_overflow():
         return page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.goto(origin)
     page.set_viewport_size({'width':1280,'height':900})
     audit('empty-desktop')
-    headings=page.locator('h1,h2,h3,h4,h5,h6').evaluate_all('(nodes)=>nodes.map(n=>Number(n.tagName[1]))')
+    headings=page.locator('h1,h2,h3,h4,h5,h6').evaluate_all('(nodes)=>nodes.filter(n=>n.getClientRects().length).map(n=>Number(n.tagName[1]))')
     check(headings[0]==1 and all(b<=a+1 for a,b in zip(headings,headings[1:])),
           'Heading order has one starting H1 and no skipped levels')
     page.keyboard.press('Tab')
@@ -69,12 +92,12 @@ def run_hardening(page, check, output, root):
         """nodes=>nodes.filter(n=>n.getClientRects().length && !n.disabled)
         .every(n=>n.getBoundingClientRect().height>=44)"""),
         'Visible native controls and full checkbox labels have 44px height targets')
-    page.get_by_role('button',name='Compare three strategies',exact=True).click()
+    page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
     page.locator('#cash[aria-invalid=true]').wait_for()
     fill({'salesProbability':'wrong'})
-    page.get_by_role('button',name='Compare three strategies',exact=True).click()
+    page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
     page.locator('#salesProbability-error').wait_for()
-    page.locator('#salesProbability').evaluate("n=>n.closest('details').open=false")
+    page.locator('[data-slot=collapsible-trigger]').click()
     page.locator('.error-summary a[href="#salesProbability"]').click()
     check(page.evaluate("document.activeElement.id==='salesProbability'") and
           page.locator('#salesProbability').is_visible(),
@@ -88,22 +111,25 @@ def run_hardening(page, check, output, root):
           'Reload after malformed inputs begins without results or financial entries')
     page.set_viewport_size({'width':1280,'height':900})
     example()
-    page.get_by_role('button',name='Compare three strategies',exact=True).focus()
+    page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).focus()
     page.keyboard.press('Enter')
     page.locator('[data-strategy=trigger]').wait_for()
     check(page.locator('[data-strategy]').count()==3,'Keyboard Enter submits and displays three comparisons')
-    check('missed essential payment' in page.locator('[data-strategy=wait]').inner_text(),
+    check('bill could still be unpaid' in page.locator('[data-strategy=wait]').inner_text(),
           'Wait-strategy unpaid-bill warning is visible on its card')
-    check(page.get_by_text('R51 rounding limitation:',exact=False).first.is_visible(),
-          'Half-cent rounding limitation is visible alongside comparisons')
+    check(page.get_by_text('Amounts are estimates.',exact=False).first.is_visible(),
+          'Plain-language rounding warning is visible alongside comparisons')
     audit('comparison-desktop')
     (output/'reading-order.txt').write_text(page.locator('main').aria_snapshot(),encoding='utf-8')
+    open_details()
+    check('R51 rounding limitation:' in page.locator('.rounding-details').inner_text(),'Full half-cent explanation remains available')
     count=page.locator('#map-path option').count()
     page.locator('#map-path').select_option(str(count-1))
     fill({'receiptProbability':'1','salesProbability':'1'})
     compare()
     check(page.locator('#map-path option').count()==1 and page.locator('#map-path').input_value()=='0',
           'Money Map selection stays aligned when outcome count shrinks')
+    go_inputs()
     for i in range(20):
         page.locator('#cash').fill(str(601+i))
         if page.locator('[data-strategy]').count()!=0:
@@ -121,7 +147,7 @@ def run_hardening(page, check, output, root):
     compare()
     check(page.locator('[aria-invalid=true]').count()==0,'Maximum permitted R10 million money inputs remain supported')
     fill({'cash':'10000000.01'})
-    page.get_by_role('button',name='Compare three strategies',exact=True).click()
+    page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
     page.locator('#cash[aria-invalid=true]').wait_for()
     check('10,000,000' in page.locator('#cash-error').inner_text(),
           'One cent over permitted input limit is rejected')
@@ -137,20 +163,20 @@ def run_hardening(page, check, output, root):
     confirm()
     for _ in range(3):
         staged()
-        page.get_by_role('heading',name='Later batch: modelled feasible',exact=True).wait_for()
+        page.get_by_role('heading',name='Next purchase: fits these numbers',exact=True).wait_for()
     check(True,'Repeated staged checks retain only a current feasible assessment')
     page.set_viewport_size({'width':390,'height':844})
     fill({'clearedBalance':'349.99'})
     check(page.get_by_role('checkbox',checked=True).count()==0 and
-          'Later batch:' not in page.get_by_test_id('safe-result').inner_text(),
+          'Next purchase:' not in page.get_by_test_id('safe-result').inner_text(),
           'Receipt/balance edit synchronously clears staged assessment and confirmations')
     staged()
-    page.get_by_role('heading',name='Later batch: Locked',exact=True).wait_for()
+    page.get_by_role('heading',name='Next purchase: wait',exact=True).wait_for()
     audit('locked-mobile')
     fill({'clearedBalance':'350'})
     confirm()
     staged()
-    page.get_by_role('heading',name='Later batch: modelled feasible',exact=True).wait_for()
+    page.get_by_role('heading',name='Next purchase: fits these numbers',exact=True).wait_for()
     page.set_viewport_size({'width':1280,'height':900})
     audit('feasible-desktop')
     page.screenshot(path=str(output/'hardened-desktop.png'),full_page=True)
@@ -168,9 +194,9 @@ def run_hardening(page, check, output, root):
     page.set_viewport_size({'width':1280,'height':900})
     example()
     compare()
-    page.get_by_role('link',name='2. Compare strategies',exact=True).click()
+    page.get_by_role('link',name='Compare options',exact=True).click()
     fill({'cash':'123'})
-    page.get_by_role('link',name='3. Staged purchase',exact=True).click()
+    page.get_by_role('link',name='Check a purchase',exact=True).click()
     page.go_back()
     check(page.locator('[data-strategy]').count()==0 and page.locator('#cash').input_value()=='123',
           'Back navigation cannot restore a comparison from before an edit')
@@ -183,12 +209,26 @@ def run_hardening(page, check, output, root):
     check(page.evaluate('localStorage.length===0 && sessionStorage.length===0') and not page.context.cookies(),
           'Application leaves local/session storage and cookies empty')
     def luminance(hex_value):
+        if len(hex_value)==4:
+            hex_value='#'+''.join(character*2 for character in hex_value[1:])
         channels=[int(hex_value[i:i+2],16)/255 for i in [1,3,5]]
         linear=[v/12.92 if v<=.04045 else ((v+.055)/1.055)**2.4 for v in channels]
         return sum(a*b for a,b in zip(linear,[.2126,.7152,.0722]))
-    background=luminance('#10251f')
-    contrast={color:round((luminance(color)+.05)/(background+.05),2)
-              for color in ['#eaf5ef','#b8dfcb']}
+    # Inspect the shipped semantic palette rather than asserting historical constants.
+    tokens=page.evaluate("""() => {
+        const style=getComputedStyle(document.documentElement);
+        return Object.fromEntries(['foreground','background','primary','primary-foreground',
+            'muted-foreground','surface','risk-high','risk-high-surface',
+            'risk-medium','risk-medium-surface','risk-low','risk-low-surface'].map(
+                name=>[name,style.getPropertyValue('--'+name).trim()]));
+    }""")
+    pairs=[('foreground','background'),('primary-foreground','primary'),
+           ('muted-foreground','surface'),('risk-high','risk-high-surface'),
+           ('risk-medium','risk-medium-surface'),('risk-low','risk-low-surface')]
+    contrast={}
+    for foreground,background in pairs:
+        values=sorted([luminance(tokens[foreground]),luminance(tokens[background])])
+        contrast[foreground+'/'+background]=round((values[1]+.05)/(values[0]+.05),2)
     check(all(value>=4.5 for value in contrast.values()),
-          'Retained foreground/accent and inverse button palette exceed 4.5:1 contrast')
+          'Rendered semantic text, primary button and risk palettes exceed 4.5:1 contrast')
     return {'scans':scans,'contrast':contrast,'zoomScope':'200% CSS text; 320 CSS px reflow proxy, not OS/browser chrome zoom certification'}
