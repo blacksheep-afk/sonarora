@@ -1,6 +1,6 @@
 import ts from 'typescript';
 export const APPLICATION_IMPORTS:Readonly<Record<string,readonly string[]>>={
- 'App.tsx':['react','./foundation','./application/adapter','./application/session','./components/ui/button','./components/ui/input','./components/ui/label','./components/AppIcon','@hugeicons/core-free-icons'],
+ 'App.tsx':['react', './components/ui/button', './components/ui/input', './components/ui/label', './components/ui/alert', './components/ui/collapsible', './components/ui/toggle-group', './components/ui/tooltip', './components/AppIcon', './components/LoadingState', './components/DecisionViews', '@hugeicons/core-free-icons', './application/adapter', './application/session'],
  'lib/utils.ts':['clsx', 'tailwind-merge'],
  'components/AppIcon.tsx':['@hugeicons/react', 'class-variance-authority', '@/lib/utils'],
  'components/ui/card.tsx':['react', '@/lib/utils'],
@@ -12,6 +12,15 @@ export const APPLICATION_IMPORTS:Readonly<Record<string,readonly string[]>>={
  'components/ui/button.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui'],
  'components/ui/input.tsx':['react', '@/lib/utils'],
  'components/ui/skeleton.tsx':['@/lib/utils'],
+ 'components/DecisionViews.tsx':['react', 'class-variance-authority', '@hugeicons/core-free-icons', '@/lib/utils', './AppIcon', './ui/button', './ui/card', './ui/badge', './ui/table', './ui/tabs', './ui/chart', '../application/adapter'],
+ 'components/LoadingState.tsx':['./ui/progress', '@/lib/utils'],
+ 'components/ui/tabs.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui'],
+ 'components/ui/chart.tsx':['react', '@/lib/utils', 'recharts'],
+ 'components/ui/tooltip.tsx':['react', '@/lib/utils', 'radix-ui'],
+ 'components/ui/toggle-group.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui', '@/components/ui/toggle'],
+ 'components/ui/table.tsx':['react', '@/lib/utils'],
+ 'components/ui/toggle.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui'],
+ 'components/ui/collapsible.tsx':['radix-ui'],
  'foundation.ts':[],
  'main.tsx':['react','react-dom/client','./App','./style.css','@fontsource-variable/manrope/index.css','@fontsource-variable/source-sans-3/index.css'],
  'application/adapter.ts':['../engine/money/index','../engine/validation/index','../engine/comparison/index','../engine/safe-to-buy/index','../engine/state/index','../engine/explanations/index','../engine/simulation/index'],
