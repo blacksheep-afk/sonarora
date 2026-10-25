@@ -5,9 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Sonaroraaah: modelled financial decision support using your reported assumptions. No account connection or payments." />
     <title>Sonaroraaah</title>
+    <style>
+      .boot-loading { min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;background:#f4f8f8;color:#102d3b;font-family:sans-serif;padding:2rem;box-sizing:border-box; }
+      .boot-wordmark { font-size:clamp(2.7rem,8vw,4rem);font-weight:800;letter-spacing:-.04em;line-height:1.1; }
+      .boot-tagline { color:#125461;font-size:.75rem;letter-spacing:.28em;text-transform:uppercase;font-weight:650; }
+      .boot-track { width:180px;height:5px;border-radius:4px;background:#d4e0e5;overflow:hidden;margin-top:1rem; }
+      .boot-track span { display:block;width:45%;height:100%;background:#007d87;border-radius:4px;animation:boot-travel 1.5s ease-in-out infinite alternate; }
+      .boot-copy { font-size:.85rem;color:#506471; }
+      body { margin:0; }
+      @keyframes boot-travel { from {translate:0 0;} to {translate:120% 0;} }
+      @media(prefers-reduced-motion:reduce) { .boot-track span {animation:none;} }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot-loading" role="status" aria-live="polite" aria-busy="true"><span class="boot-wordmark">Sonarora</span><span class="boot-tagline">Protect bills first</span><div class="boot-track" aria-hidden="true"><span></span></div><span class="boot-copy">Loading…</span></div></div>
+    <noscript>Sonarora needs JavaScript to run its model locally. Enable JavaScript and reload to continue.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
