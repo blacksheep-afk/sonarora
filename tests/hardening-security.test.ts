@@ -23,10 +23,12 @@ describe('Sprint 4 security/privacy guard',()=>{
     "radix-ui": "1.8.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "recharts": "3.8.0",
     "tailwind-merge": "3.7.0",
     "zod": "4.6.7"
 });
   expect(pkg.devDependencies['axe-core']).toBe('4.14.0');
   expect(pkg.dependencies['axe-core']).toBeUndefined();
+  expect(pkg.dependencies['lucide-react']).toBeUndefined();
  });
 });

@@ -6,6 +6,7 @@ import App from '../src/App';
 import * as adapter from '../src/application/adapter';
 let host:HTMLDivElement,root:Root;
 beforeEach(()=>{
+ history.replaceState({},'', '/');
  Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});
  host=document.createElement('div');document.body.append(host);
  root=createRoot(host);act(()=>root.render(<App/>));
@@ -31,44 +32,46 @@ function input(id:string,value:string) {
 }
 describe('Sprint 4 UI hardening',()=>{
  it('makes wait and rounding limitations visible without opening assumptions',async()=>{
-  await click('Load illustrative example');await click('Compare three strategies');
-  expect(host.querySelector('[data-strategy=wait]')?.textContent).toContain('missed essential payment');
-  expect([...host.querySelectorAll('p')].some(p=>p.textContent?.startsWith('R51 rounding limitation:')&&!p.closest('details'))).toBe(true);
+  await click('Use example');await click('Compare options');
+  expect(host.querySelector('[data-strategy=wait]')?.textContent).toContain('bill could still be unpaid');
+  expect([...host.querySelectorAll('p')].some(p=>p.textContent?.startsWith('Amounts are estimates.')&&!p.closest('details'))).toBe(true);
+  expect(host.querySelector('.rounding-details')?.textContent).toContain('R51 rounding limitation:');
  });
  it('keeps the displayed map branch selected when the distribution shrinks',async()=>{
-  await click('Load illustrative example');await click('Compare three strategies');
+  await click('Use example');await click('Compare options');
   select('map-path','3');input('receiptProbability','1');input('salesProbability','1');
-  await click('Compare three strategies');
+  await click('Compare options');
   expect(host.querySelectorAll('#map-path option')).toHaveLength(1);
   expect(host.querySelector<HTMLSelectElement>('#map-path')?.value).toBe('0');
  });
  it('restores focus from a summary link into a collapsed invalid disclosure',async()=>{
-  await click('Compare three strategies');
+  await click('Compare options');
   const field=host.querySelector<HTMLInputElement>('#salesProbability')!;
-  const details=field.closest('details')!;details.open=false;
+  const trigger=host.querySelector<HTMLButtonElement>('[data-slot=collapsible-trigger]')!;
+  act(()=>trigger.click());
   act(()=>host.querySelector<HTMLAnchorElement>('a[href="#salesProbability"]')!.click());
-  expect(details.open).toBe(true);expect(document.activeElement).toBe(field);
+  expect(trigger.getAttribute('aria-expanded')).toBe('true');expect(document.activeElement).toBe(field);
  });
  it('focuses a global validation summary when no individual field matches',async()=>{
   vi.spyOn(adapter,'compareDraft').mockReturnValueOnce({ok:false,issues:[{code:'AGGREGATE_LIMIT',path:[],messageKey:'validation.AGGREGATE_LIMIT'}]});
-  await click('Compare three strategies');
+  await click('Compare options');
   expect(document.activeElement).toBe(host.querySelector('[role=alert]'));
   expect(host.textContent).toContain('R1 billion');
  });
  it('fails closed after an unexpected staged adapter failure and provides focus recovery',async()=>{
-  await click('Load illustrative example');
+  await click('Use example');
   for(const checkbox of host.querySelectorAll<HTMLInputElement>('input[type=checkbox]'))act(()=>checkbox.click());
-  await click('Check staged purchase');expect(host.textContent).toContain('Later batch: modelled feasible');
+  await click('Check smaller purchases');expect(host.textContent).toContain('Next purchase: fits these numbers');
   vi.spyOn(adapter,'safeDraft').mockImplementationOnce(()=>{throw new Error('test-only staged failure');});
-  await click('Check staged purchase');
-  expect(host.textContent).not.toContain('Later batch: modelled feasible');
+  await click('Check smaller purchases');
+  expect(host.textContent).not.toContain('Next purchase: fits these numbers');
   expect(document.activeElement).toBe(host.querySelector('[role=alert]'));
-  await click('Return to financial inputs');expect(document.activeElement?.id).toBe('cash');
+  await click('Review your inputs');expect(document.activeElement?.id).toBe('cash');
  });
  it('resets map strategy preference together with a discarded decision session',async()=>{
-  await click('Load illustrative example');await click('Compare three strategies');
-  select('map-strategy','wait');await click('New decision session');
-  await click('Load illustrative example');await click('Compare three strategies');
+  await click('Use example');await click('Compare options');
+  select('map-strategy','wait');await click('Clear all');
+  await click('Use example');await click('Compare options');
   expect(host.querySelector<HTMLSelectElement>('#map-strategy')?.value).toBe('now');
  });
  it('uses correct ranges in scenario-day and reported-receipt errors',()=>{
