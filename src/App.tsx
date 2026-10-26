@@ -3,24 +3,25 @@ import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { Alert, AlertDescription } from './components/ui/alert';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from './components/ui/collapsible';
-import { ToggleGroup, ToggleGroupItem } from './components/ui/toggle-group';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './components/ui/dialog';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './components/ui/tooltip';
 import { AppIcon } from './components/AppIcon';
-import { LoadingState } from './components/LoadingState';
+import { LoadingState, MIN_LOADING_MS } from './components/LoadingState';
 import { ResultOverview, ComparisonCards, MoneyMap, ROUNDING_NOTICE } from './components/DecisionViews';
 import type { Strategy } from './components/DecisionViews';
-import { Shield01Icon, Wallet01Icon, MoneyReceive01Icon, Invoice01Icon, ShoppingCart01Icon, InformationCircleIcon, File01Icon, ArrowRight01Icon, ArrowLeft01Icon, ArrowDown01Icon, SlidersHorizontalIcon, PrinterIcon, CheckmarkCircle02Icon } from '@hugeicons/core-free-icons';
+import { Shield01Icon, Wallet01Icon, MoneyReceive01Icon, Invoice01Icon, ShoppingCart01Icon, InformationCircleIcon, File01Icon, ArrowRight01Icon, ArrowLeft01Icon, SlidersHorizontalIcon, PrinterIcon, CheckmarkCircle02Icon } from '@hugeicons/core-free-icons';
 import { compareDraft, safeDraft, exampleDraft, exampleSafe, errorsFor, describeReason, moneyText } from './application/adapter';
 import type { ScenarioField, SafeField, Draft, SafeDraft } from './application/adapter';
 import { newSession, sessionReducer, ticketFor, visibleSnapshot } from './application/session';
 import type { ConfirmationKind, Session } from './application/session';
-const labels: Record<ScenarioField, string> = { cash: 'Cash you have (R)', bank: 'Money in your bank (R)', receivable: 'Payment you expect (R)', receiptTiming: 'Do you know the payment day?', receiptDay: 'Payment day', bill1: 'Bill you must pay (R)', bill2: 'Another bill you must pay (R)', dueDay: 'Bill due day', billPriority: 'Which bill comes first?', stockCost: 'Cost of stock (R)', grossSales: 'Sales money before costs (R)', salesLagDays: 'Days until sales', emergencyAmount: 'Money for emergencies (R)', emergencyDay: 'Day of the emergency', receiptProbability: 'Chance of payment (0–1)', salesProbability: 'Chance of sales (0–1)', relation: 'How the two chances work together' };
+const labels: Record<ScenarioField, string> = { cash: 'Cash you have (R)', bank: 'Money in your bank (R)', receivable: 'Payment you expect (R)', receiptTiming: 'Do you know the payment day?', receiptDay: 'Payment day', bill1: 'Bill you must pay (R)', bill2: 'Another bill you must pay (R)', dueDay: 'Bill due day', billPriority: 'Which bill comes first?', stockCost: 'Cost of stock (R)', grossSales: 'Sales money before costs (R)', salesLagDays: 'Days until sales', emergencyAmount: 'Money for emergencies (R)', emergencyDay: 'Day of the emergency', receiptProbability: 'How likely is it to arrive?', salesProbability: 'Chance of sales (0–1)', relation: 'How the two chances work together' };
 const safeLabels: Record<SafeField, string> = { splitAcceptance: 'Will the supplier sell in smaller batches?', minimumBatch: 'Smallest order the supplier allows (R)', increment: 'Order size steps (R; enter 0 if none)', firstDeliveryFee: 'First delivery cost (R)', secondDeliveryFee: 'Next delivery cost (R)', starterCost: 'First stock purchase (R)', starterGrossSalesEstimate: 'Sales from the first batch, before costs (R)', remainderGrossSalesEstimate: 'Sales from the next batch, before costs (R)', buffer: 'Extra money to keep aside (R)', receiptReported: 'Has the payment arrived?', receiptAmount: 'Payment that arrived (R)', receiptDayReported: 'Day the payment arrived (0 or later)', balanceReported: 'Do you know your balance now?', clearedBalance: 'Money you have now, including the payment (R)', remainingOtherBills: 'Other bills still to pay (R)', remainingEmergency: 'Emergency costs still to pay (R)', bill1Status: 'Have you paid bill 1?', bill2Status: 'Have you paid bill 2?', bill1Paid: 'Bill 1 amount already paid (R)', bill2Paid: 'Bill 2 amount already paid (R)', bill1Outstanding: 'Bill 1 still to pay (R)', bill2Outstanding: 'Bill 2 still to pay (R)' };
 
 type Page = 'inputs' | 'comparison' | 'safe-to-buy';
 function pageFromHash(): Page { return location.hash === '#comparison' ? 'comparison' : location.hash === '#safe-to-buy' ? 'safe-to-buy' : 'inputs'; }
-const probabilityChoices = [['0.25', 'Unlikely'], ['0.5', 'Maybe'], ['0.75', 'Likely'], ['0.9', 'Very likely']] as const;
+const probabilityChoices = [['0', 'Will not arrive'], ['0.25', 'Unlikely'], ['0.5', 'Maybe'], ['0.75', 'Likely'], ['0.9', 'Very likely'], ['1', 'Will arrive']] as const;
+const extraFields: readonly string[] = ['bill2','receiptTiming','billPriority','grossSales','salesLagDays','salesProbability','relation','emergencyAmount','emergencyDay'];
+const dayHints: Partial<Record<ScenarioField,string>> = { receiptDay: 'Day 1–14, counted from today.', dueDay: 'Day 1–14. Both bills share this day.', emergencyDay: 'Day 1–14, counted from today.', salesLagDays: '1–14 days after buying the stock.' };
 const moneyFields: readonly string[] = ['cash', 'bank', 'receivable', 'bill1', 'bill2', 'stockCost', 'grossSales', 'emergencyAmount'];
 export default function App() {
   const [state, dispatch] = useReducer(sessionReducer, undefined, newSession);
@@ -32,7 +33,7 @@ export default function App() {
   const [focusTarget, setFocusTarget] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [item, setItem] = useState('');
-  const [exactProbability, setExactProbability] = useState(false);
+  const modalFocusRef = useRef<string|null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const alertRef = useRef<HTMLDivElement>(null);
   const stagedRef = useRef<HTMLDivElement>(null);
@@ -42,24 +43,26 @@ export default function App() {
   const focusField = (id: string) => {
     setPage(id in safeLabels ? 'safe-to-buy' : 'inputs');
     if(id in safeLabels)setCheckpoint(true);
-    else {setExtras(true);setExactProbability(true);}
+    else {setExtras(extraFields.includes(id));}
+    modalFocusRef.current=id;
     setFocusTarget(id);
   };
   useEffect(() => {
     if (state.failure) { alertRef.current?.focus(); return; }
     const first = Object.keys(errorsFor(state.issues))[0];
     if (state.issues.length) {
-      if (first && document.getElementById(first)) {
+      if (first && (first in labels || first in safeLabels)) {
         setPage(first in safeLabels ? 'safe-to-buy' : 'inputs');
         if(first in safeLabels)setCheckpoint(true);
-        else {setExtras(true);setExactProbability(true);}
+        else {setExtras(extraFields.includes(first));}
+        modalFocusRef.current=first;
         setFocusTarget(first);
       } else alertRef.current?.focus();
     }
   }, [state.issues, state.failure]);
   useEffect(() => {
-    if (focusTarget) { if (!focusInput(focusTarget, formRef.current)) alertRef.current?.focus(); setFocusTarget(null); }
-  }, [focusTarget, page, extras, exactProbability]);
+    if (focusTarget && !extraFields.includes(focusTarget)) { if (!focusInput(focusTarget, formRef.current)) alertRef.current?.focus(); setFocusTarget(null); }
+  }, [focusTarget, page, extras]);
   const edit = (draft: Draft, s: SafeDraft) => dispatch({ type: 'edit', session: state.id, draft, safeDraft: s });
   const change = (key: ScenarioField, value: string) => edit({ ...state.draft, [key]: value }, state.safeDraft);
   const changeSafe = (key: SafeField, value: string) => edit(state.draft, { ...state.safeDraft, [key]: value });
@@ -73,7 +76,7 @@ export default function App() {
         dispatch({ type: 'complete', ticket, result });
 
       } catch { dispatch({ type: 'failure', ticket }); }
-    }, 0);
+    }, MIN_LOADING_MS);
   };
   const run = (kind: 'comparison' | 'safe') => calculate(state, kind, kind === 'comparison');
   const loadExample = () => {
@@ -82,7 +85,7 @@ export default function App() {
     calculate(next, 'comparison', false);
   };
   const reset = () => { dispatch({ type: 'reset' }); setSelected('now'); setPath(0); setNotes(''); setItem(''); setExtras(false); setCheckpoint(false); navigate('inputs'); };
-  const field = (key: ScenarioField, options?: readonly (readonly [string, string])[], hint?: string) => <Field key={key} id={key} label={labels[key]} value={state.draft[key]} error={errors[key]} options={options} money={moneyFields.includes(key)} description={hint ?? (key === 'relation' ? options?.find(([value]) => value === state.draft[key])?.[1] : undefined)} change={v => change(key, v)} />;
+  const field = (key: ScenarioField, options?: readonly (readonly [string, string])[], hint?: string) => <Field key={key} id={key} label={labels[key]} value={state.draft[key]} error={errors[key]} options={options} money={moneyFields.includes(key)} description={hint ?? dayHints[key] ?? (key === 'relation' ? options?.find(([value]) => value === state.draft[key])?.[1] : undefined)} change={v => change(key, v)} />;
   const safeField = (key: SafeField, options?: readonly (readonly [string, string])[]) => <Field key={key} id={key} label={safeLabels[key]} value={state.safeDraft[key]} error={errors[key]} options={options} money={!options && key !== 'receiptDayReported'} change={v => changeSafe(key, v)} />;
   const dirty = state.decision.inputRevision > 0 && !snapshot;
   const pending = state.pending !== null;
@@ -102,8 +105,9 @@ export default function App() {
       <div className="home-workspace" hidden={page !== 'inputs'}>
         <section id="inputs" className="input-panel" aria-labelledby="inputs-title">
           <div className="section-heading"><div><h2 id="inputs-title">Your money</h2><p>Enter a few details to see your options.</p></div><Button type="button" variant="secondary" className="example-button" onClick={loadExample} disabled={pending}><AppIcon icon={File01Icon} size="inline" />Use example</Button></div>
-          <div className="input-groups"><div className="input-column"><fieldset className="input-group"><legend><AppIcon icon={Wallet01Icon} /><span>Cash you have</span></legend>{field('cash', undefined, 'Money you can spend now.')}<div className="input-subfields">{field('bank')}</div></fieldset><fieldset className="input-group"><legend><AppIcon icon={Invoice01Icon} tone="medium" /><span>Bill you must pay</span></legend>{field('bill1', undefined, 'Rent, electricity or another essential bill.')}<div className="input-subfields">{field('dueDay', undefined, 'Day 1–14. Both bills share this day.')}</div></fieldset></div><div className="input-column"><fieldset className="input-group"><legend><AppIcon icon={MoneyReceive01Icon} /><span>Payment you expect</span></legend>{field('receivable', undefined, 'Payment you expect to receive.')}<div className="receipt-timing"><div className="input-subfields">{state.draft.receiptTiming === 'known' ? field('receiptDay', undefined, 'Day 1–14, counted from today.') : <p className="field-hint">If the day is unknown, we leave this payment out.</p>}</div><div className="probability-field"><Label id="probability-label">How likely is it to arrive?</Label><ToggleGroup type="single" aria-labelledby="probability-label" value={state.draft.receiptProbability} onValueChange={value => { if (value) change('receiptProbability', value); }} className="probability-toggle">{probabilityChoices.map(([value, label]) => <ToggleGroupItem key={value} value={value} aria-label={`${label}: ${value} probability`}>{label}</ToggleGroupItem>)}</ToggleGroup><button type="button" className="text-action" onClick={() => setExactProbability(!exactProbability)}>{exactProbability ? 'Hide exact value' : 'Set exact value instead'}</button><p className="probability-hint sr-only">Assumptions: 25%, 50%, 75% or 90%.</p>{exactProbability && field('receiptProbability')}</div></div></fieldset><fieldset className="input-group"><legend><AppIcon icon={ShoppingCart01Icon} /><span>What you want to buy</span></legend>{field('stockCost', undefined, 'The full stock or item purchase cost.')}</fieldset></div></div>
-          <Collapsible open={extras} onOpenChange={setExtras} className="more-details"><CollapsibleTrigger asChild><Button type="button" variant="ghost" className="details-trigger"><AppIcon icon={SlidersHorizontalIcon} size="inline" /><span><strong>More details</strong><small>Other bills, sales and optional notes</small></span><AppIcon icon={ArrowDown01Icon} size="inline" /></Button></CollapsibleTrigger><CollapsibleContent forceMount hidden={!extras} className="details-content"><p className="quiet-note">Add the other numbers used in this example. Enter 0 if there is none. Days run from 1 to 14; the example ends on Day 30.</p><div className="fields">{field('bill2')}{field('receiptTiming', [['known', 'I know the day'], ['unknown', 'I do not know — leave this payment out']])}{field('billPriority', [['first', 'Bill 1 first'], ['second', 'Bill 2 first']])}{field('grossSales')}{field('salesLagDays')}{field('salesProbability')}{!exactProbability && field('receiptProbability')}{field('relation', [['independent', 'Separate — each chance is used on its own'], ['linked', 'Linked — use the lower chance for both']])}{field('emergencyAmount')}{field('emergencyDay')}</div><p className="quiet-note">Sales money is before costs, not profit. The chances are your best guesses. If the payment day is unknown, it is left out. Sales arriving after a bill is due cannot pay it on time.</p><div className="field input-subfields"><Label htmlFor="purchase-note">What is it? (optional)</Label><Input id="purchase-note" value={item} onChange={e => setItem(e.target.value)} maxLength={200} placeholder="e.g. stock for your shop" /></div><div className="field"><Label htmlFor="notes">Notes (optional)</Label><textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} maxLength={2000} placeholder="Add any other information…" aria-describedby="notes-hint" /><p id="notes-hint" className="field-hint">Notes disappear on reload. They do not affect the calculation.</p></div></CollapsibleContent></Collapsible>
+          <div className="input-groups"><div className="input-column"><fieldset className="input-group"><legend><AppIcon icon={Wallet01Icon} /><span>Cash you have</span></legend>{field('cash', undefined, 'Money you can spend now.')}<div className="input-subfields">{field('bank')}</div></fieldset><fieldset className="input-group"><legend><AppIcon icon={Invoice01Icon} tone="medium" /><span>Bill you must pay</span></legend>{field('bill1', undefined, 'Rent, electricity or another essential bill.')}<div className="input-subfields">{field('dueDay')}</div></fieldset></div><div className="input-column"><fieldset className="input-group"><legend><AppIcon icon={MoneyReceive01Icon} /><span>Payment you expect</span></legend>{field('receivable', undefined, 'Payment you expect to receive.')}<div className="receipt-timing"><div className="input-subfields">{state.draft.receiptTiming === 'known' ? field('receiptDay') : <p className="field-hint">If the day is unknown, we leave this payment out.</p>}</div><div className="probability-field"><Field id="receiptProbability" label="How likely is it to arrive?" value={state.draft.receiptProbability} error={errors.receiptProbability} options={probabilityChoices} description="Your best guess, not a guarantee." change={value=>change('receiptProbability',value)} /></div></div></fieldset><fieldset className="input-group"><legend><AppIcon icon={ShoppingCart01Icon} /><span>What you want to buy</span></legend>{field('stockCost', undefined, 'The full stock or item purchase cost.')}</fieldset></div></div>
+          <p id="planning-days-hint" className="field-hint planning-days-hint">This prototype plans dates for the next 14 days: day 1 is tomorrow, and day 14 is two weeks from today.</p>
+          <Dialog open={extras} onOpenChange={setExtras}><DialogTrigger asChild><Button type="button" variant="outline" className="more-details-button" onClick={()=>{modalFocusRef.current=null;}}><AppIcon icon={SlidersHorizontalIcon} size="inline" />More details</Button></DialogTrigger><DialogContent container={formRef.current} className="details-dialog" onOpenAutoFocus={event=>{event.preventDefault();focusInput(modalFocusRef.current??'bill2',formRef.current);modalFocusRef.current=null;setFocusTarget(null);}} onKeyDown={event=>{if(event.key==='Enter' && event.target instanceof HTMLInputElement)event.preventDefault();}}><DialogHeader><DialogTitle>More details</DialogTitle><DialogDescription>Other bills, sales and optional notes. Changes are applied as you enter them.</DialogDescription></DialogHeader><div className="details-dialog-body"><p className="quiet-note">Add the other numbers used in this example. Enter 0 if there is none. Days run from 1 to 14; the example ends on Day 30.</p><div className="fields">{field('bill2',undefined,'Uses the same bill due day as the main page.')}{field('receiptTiming', [['known', 'I know the day'], ['unknown', 'I do not know — leave this payment out']])}{field('billPriority', [['first', 'Bill 1 first'], ['second', 'Bill 2 first']])}{field('grossSales')}{field('salesLagDays')}{field('salesProbability')}{field('relation', [['independent', 'Separate — each chance is used on its own'], ['linked', 'Linked — use the lower chance for both']])}{field('emergencyAmount')}{field('emergencyDay')}</div><p className="quiet-note">Sales money is before costs, not profit. The chances are your best guesses. If the payment day is unknown, it is left out. Sales arriving after a bill is due cannot pay it on time.</p><div className="field input-subfields"><Label htmlFor="purchase-note">What is it? (optional)</Label><Input id="purchase-note" value={item} onChange={e => setItem(e.target.value)} maxLength={200} placeholder="e.g. stock for your shop" /></div><div className="field"><Label htmlFor="notes">Notes (optional)</Label><textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} maxLength={2000} placeholder="Add any other information…" aria-describedby="notes-hint" /><p id="notes-hint" className="field-hint">Notes disappear on reload. They do not affect the calculation.</p></div></div><DialogFooter><DialogClose asChild><Button type="button">Done</Button></DialogClose></DialogFooter></DialogContent></Dialog>
           <div className="form-actions"><Button type="submit" disabled={pending}>Compare options<AppIcon icon={ArrowRight01Icon} size="inline" /></Button><Button type="button" variant="secondary" onClick={reset}>Clear all</Button></div><p className="example-caption">The example is invented. Changing a number clears the old result.</p>
         </section>
         <section className="result-panel" aria-labelledby="result-title" aria-busy={pending}>{resultPanel}</section>
@@ -133,8 +137,8 @@ export default function App() {
 }
 
 function Field({ id, label, value, error, options, description, money = false, change }: { id: string; label: string; value: string; error: string | undefined; description?: string | undefined; options: readonly (readonly [string, string])[] | undefined; money?: boolean; change: (value: string) => void }) {
-  const props = { id, value, 'aria-invalid': error ? true : undefined, 'aria-describedby': [error ? id + '-error' : null, description ? id + '-description' : null].filter(Boolean).join(' ') || undefined, onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => change(event.target.value) };
-  return <div className="field"><Label htmlFor={id}>{label}</Label>{options ? <select {...props}>{options.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select> : <div className={money ? 'money-input' : 'plain-input'}>{money && <span aria-hidden="true">R</span>}<Input {...props} type="text" inputMode="decimal" autoComplete="off" spellCheck={false} /></div>}{description && <p id={id + '-description'} className="field-hint">{description}</p>}{error && <span id={id + '-error'} className="error">{error}</span>}</div>;
+  const props = { id, value, 'aria-invalid': error ? true : undefined, 'aria-describedby': [error ? id + '-error' : null, description ? id + '-description' : null, ['receiptDay','dueDay','emergencyDay'].includes(id)?'planning-days-hint':null].filter(Boolean).join(' ') || undefined, onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => change(event.target.value) };
+  return <div className="field"><Label htmlFor={id}>{label}</Label>{options ? <select {...props}>{options.length && !options.some(([option])=>option===value) && <option value="" disabled>Choose an option</option>}{options.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select> : <div className={money ? 'money-input' : 'plain-input'}>{money && <span aria-hidden="true">R</span>}<Input {...props} type="text" inputMode="decimal" autoComplete="off" spellCheck={false} /></div>}{description && <p id={id + '-description'} className="field-hint">{description}</p>}{error && <span id={id + '-error'} className="error">{error}</span>}</div>;
 }
 function focusInput(id: string, form: HTMLFormElement | null): boolean {
   const control = document.getElementById(id);
