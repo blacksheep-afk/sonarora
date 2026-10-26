@@ -478,3 +478,11 @@ footer p { max-width:none; margin:0; }
 .details-dialog>[data-slot=dialog-close] { min-width:44px; min-height:44px; top:.7rem; right:.7rem; padding:.5rem; }
 @media(max-width:480px) { .details-dialog-body { padding:1rem; } .details-dialog-body .fields { grid-template-columns:1fr; } }
 @media screen and (min-width:761px) and (max-width:1024px) { .planning-days-hint { margin-top:.4rem; } }
+
+/* Shared rows keep the two input columns aligned as labels and hints wrap. */
+.aligned-inputs { align-items:start; row-gap:.85rem; }
+.aligned-inputs > .field { min-width:0; }
+.aligned-inputs > .field > label { display:flex; align-items:center; gap:.4rem; min-height:2.7em; }
+.aligned-inputs .money-input,
+.aligned-inputs .plain-input > input,
+.aligned-inputs select { width:100%; height:46px; min-height:46px; }
