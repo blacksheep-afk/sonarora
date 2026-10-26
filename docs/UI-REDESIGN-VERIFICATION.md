@@ -87,3 +87,10 @@ Replaced the payment-likelihood toggle buttons and exact-value control with one 
 More details is now a shadcn dialog with an internally scrolling body and visible header/Done action. Its portal stays within the controlled form; draft edits remain in memory on close. Focus is trapped, Escape restores the trigger, and validation opens the modal for invalid extra fields. Opening the popup does not change workspace height. The separate exact payment-probability field is absent from the main page and modal.
 
 Verification: lint, both TypeScript configurations, architecture guard, build and all 311 tests pass. Final quality gate passes Chromium 74/74, Firefox 74/74, historical browser 18/18 and six axe scans per Chromium/Firefox family, then exits 1 at the unchanged WebKit native-Tab assertion. No assertion skips or tabindex workaround. Additional Chromium checks at 360px, 810px and 1280px verify dropdown-only input, date explanation, stable background page height, internal scrolling, focus trap/Escape, note retention, synchronous financial-result invalidation and zero reported axe violations with the dialog open. Captures were refreshed at these widths under `test-results/redesign/02-home-*` and `05-details-*`. Logs: `dialog-browser.log` and `dialog-quality-check.log`.
+
+
+### 26 October — calmer error handling
+
+Validation now shows one actionable detail first, with the remaining issues in a collapsed native disclosure. Messages use plain instructions, retain field associations and omit internal paths. Unexpected failures preserve draft values and offer a retry. Unit coverage includes retry recovery, collapsed validation, and opening/focusing an extra field from an error link.
+
+Validation: 313 unit tests passed; lint, typecheck, architecture checks and production build passed. Focused Chromium checks at 390px and 1280px verified collapsed errors, no horizontal page overflow, and modal focus recovery. Axe found zero violations on each error-state page after correcting notice-link contrast. These focused checks do not constitute physical-phone or screen-reader testing, or a rerun of the full cross-browser gate.
