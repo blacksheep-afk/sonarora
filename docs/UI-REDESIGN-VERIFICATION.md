@@ -39,7 +39,7 @@ Impeccable guidance was read directly from the user-selected repository because 
 
 User-directed changes now implement the five screen states and subsequent request for simpler labels, less white space and smaller cards. Cash and bank fields sit directly above the bill in one independent column; expected payment and stock sit in the other. Optional details and Money Map expand on request. The three strategy cards show compact individual rings, short summaries and full metric disclosures. The waiting strategy is labelled “Wait until after bill day” so its name matches its retained timing behaviour. “Receipt” is presented as “payment”. Original validation messages are unchanged.
 
-Loading uses the same wordmark, thin indeterminate bar and “Loading…” language for boot and both calculations. Work has no forced delay. Only the screenshot harness slows callbacks to make transient loading inspectable. Initial boot uses lightweight HTML before React is ready; subsequent checks use the shared in-panel component.
+Loading uses the same wordmark, thin indeterminate bar and “Loading…” language for boot and both calculations. Updated 26 October: startup and every calculation now remain loading for at least five seconds at the user’s request. This supersedes the earlier no-delay policy; the screenshot harness uses the real application timing. Initial boot uses lightweight HTML before React is ready; subsequent checks use the shared in-panel component.
 
 | Check | Final result |
 | --- | --- |
@@ -71,3 +71,26 @@ The foundation is committed. The flow/copy changes remain uncommitted for the re
 ## Step-by-step review: Money Map placement
 
 Removed Money Map from Your money at the user’s request. It is available only on Compare options. Verified in Chromium at 360px and 1280px, including its table and Day 30 closing event. Refreshed both home captures. Lint, both TypeScript checks, all 309 unit tests and build pass. The redesign browser script now checks the map’s absence from the home panel and tests it on Compare options. This narrow update did not rerun the full cross-browser gate.
+
+## Step-by-step review: readable comparison list
+
+The List view now keeps a readable 880px minimum table width inside a horizontally scrollable, named, keyboard-focusable region. Labels wrap at word boundaries; numeric cells do not wrap. The page itself does not overflow. Verified in Chromium at 360px, 390px, 810px and 1280px: all three options remain, numeric text stays on one line, narrow layouts scroll by keyboard and four configured axe scans report zero violations. Captures: `test-results/redesign/comparison-list-{width}.png`. Lint, application/engine TypeScript, all 309 unit tests and build pass. Only the first visual-review finding was addressed; tablet workspace density and risk-colour meaning remain separate review items.
+
+## Step-by-step review: tablet workspace
+
+The form and result panels now stack at 1024px and below, giving tablet inputs the full workspace width. Compact tablet-only spacing keeps the main form action visible at 810×777 while preserving 44px controls. Verified 810×777, 1024×900, 1025×900 and 1280×900 in Chromium: correct stacking/side-by-side boundary, readable tablet field widths, no horizontal overflow, and four configured axe scans with zero reported violations. The action ends at 770.9px on the 777px-high tablet viewport. Lint, both TypeScript checks and build pass. Existing phone rules and desktop side-by-side layout remain. Captures are `test-results/redesign/tablet-workspace-{width}.png`.
+
+## Payment dropdown and scrollable details modal — 26 October 2026
+
+Replaced the payment-likelihood toggle buttons and exact-value control with one native dropdown. Presets retain the corresponding numeric engine inputs, including explicit zero/one assumptions, and are labelled as guesses rather than guarantees. The primary page explains the prototype’s two-week input period: day 1 is tomorrow and day 14 is two weeks from today.
+
+More details is now a shadcn dialog with an internally scrolling body and visible header/Done action. Its portal stays within the controlled form; draft edits remain in memory on close. Focus is trapped, Escape restores the trigger, and validation opens the modal for invalid extra fields. Opening the popup does not change workspace height. The separate exact payment-probability field is absent from the main page and modal.
+
+Verification: lint, both TypeScript configurations, architecture guard, build and all 311 tests pass. Final quality gate passes Chromium 74/74, Firefox 74/74, historical browser 18/18 and six axe scans per Chromium/Firefox family, then exits 1 at the unchanged WebKit native-Tab assertion. No assertion skips or tabindex workaround. Additional Chromium checks at 360px, 810px and 1280px verify dropdown-only input, date explanation, stable background page height, internal scrolling, focus trap/Escape, note retention, synchronous financial-result invalidation and zero reported axe violations with the dialog open. Captures were refreshed at these widths under `test-results/redesign/02-home-*` and `05-details-*`. Logs: `dialog-browser.log` and `dialog-quality-check.log`.
+
+
+### 26 October — calmer error handling
+
+Validation now shows one actionable detail first, with the remaining issues in a collapsed native disclosure. Messages use plain instructions, retain field associations and omit internal paths. Unexpected failures preserve draft values and offer a retry. Unit coverage includes retry recovery, collapsed validation, and opening/focusing an extra field from an error link.
+
+Validation: 313 unit tests passed; lint, typecheck, architecture checks and production build passed. Focused Chromium checks at 390px and 1280px verified collapsed errors, no horizontal page overflow, and modal focus recovery. Axe found zero violations on each error-state page after correcting notice-link contrast. These focused checks do not constitute physical-phone or screen-reader testing, or a rerun of the full cross-browser gate.

@@ -31,7 +31,7 @@ export function sessionReducer(s:Session,a:Action):Session {
   }
   if(a.type==='begin') return matches(s,a.ticket)?deepFreeze({...s,pending:a.ticket,plan:null,issues:[],failure:null}):s;
   if(!matches(s,a.ticket)||s.pending!==a.ticket) return s;
-  if(a.type==='failure') return deepFreeze({...s,pending:null,plan:null,decision:clearResult(s.decision),failure:'The model could not complete. No result is available. Review inputs and try again.'});
+  if(a.type==='failure') return deepFreeze({...s,pending:null,plan:null,decision:clearResult(s.decision),failure:'Your numbers are still here. Please try again. If it keeps happening, review your inputs.'});
   if(!a.result.ok) return deepFreeze({...s,pending:null,plan:null,decision:a.ticket.kind==='comparison'?clearResult(s.decision):s.decision,issues:a.result.issues});
   if(a.ticket.kind==='safe') return deepFreeze({...s,pending:null,plan:a.result.value as SafeToBuyPlan});
   const accepted=acceptResult(s.decision,{revision:a.ticket.revision,value:a.result.value as Snapshot});

@@ -7,27 +7,29 @@ import * as adapter from '../src/application/adapter';
 let host:HTMLDivElement,root:Root;
 beforeEach(()=>{
  history.replaceState({},'', '/');
+ vi.useFakeTimers();
  Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});
  host=document.createElement('div');document.body.append(host);
  root=createRoot(host);act(()=>root.render(<App/>));
 });
-afterEach(()=>{act(()=>root.unmount());host.remove();vi.restoreAllMocks();});
+afterEach(()=>{act(()=>root.unmount());host.remove();vi.useRealTimers();vi.restoreAllMocks();});
 function button(name:string):HTMLButtonElement {
  const node=[...host.querySelectorAll('button')].find(b=>b.textContent===name);
  if(!node)throw new Error('Missing button '+name);return node;
 }
 async function click(name:string) {
- await act(async()=>{button(name).click();await new Promise(r=>setTimeout(r,20));});
+ await act(async()=>{if(name==='Compare options' && host.querySelector('[role=dialog]'))button('Done').click();button(name).click();await vi.advanceTimersByTimeAsync(5000);});
 }
 function select(id:string,value:string) {
  const node=host.querySelector<HTMLSelectElement>('#'+id)!;
  act(()=>{node.value=value;node.dispatchEvent(new Event('change',{bubbles:true}));});
 }
 function input(id:string,value:string) {
- const node=host.querySelector<HTMLInputElement>('#'+id)!;
+ if(!host.querySelector('#'+id))act(()=>button('More details').click());
+ const node=host.querySelector<HTMLInputElement|HTMLSelectElement>('#'+id)!;
  act(()=>{
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(node,value);
-  node.dispatchEvent(new Event('input',{bubbles:true}));
+  Object.getOwnPropertyDescriptor(node instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value')!.set!.call(node,value);
+  node.dispatchEvent(new Event(node instanceof HTMLSelectElement?'change':'input',{bubbles:true}));
  });
 }
 describe('Sprint 4 UI hardening',()=>{
@@ -44,13 +46,12 @@ describe('Sprint 4 UI hardening',()=>{
   expect(host.querySelectorAll('#map-path option')).toHaveLength(1);
   expect(host.querySelector<HTMLSelectElement>('#map-path')?.value).toBe('0');
  });
- it('restores focus from a summary link into a collapsed invalid disclosure',async()=>{
+ it('opens the details modal and focuses the invalid field from an error link',async()=>{
   await click('Compare options');
-  const field=host.querySelector<HTMLInputElement>('#salesProbability')!;
-  const trigger=host.querySelector<HTMLButtonElement>('[data-slot=collapsible-trigger]')!;
-  act(()=>trigger.click());
+  expect(host.querySelector('[role=dialog]')).toBeNull();
   act(()=>host.querySelector<HTMLAnchorElement>('a[href="#salesProbability"]')!.click());
-  expect(trigger.getAttribute('aria-expanded')).toBe('true');expect(document.activeElement).toBe(field);
+  expect(host.querySelector('[role=dialog]')).not.toBeNull();
+  expect(document.activeElement?.id).toBe('salesProbability');
  });
  it('focuses a global validation summary when no individual field matches',async()=>{
   vi.spyOn(adapter,'compareDraft').mockReturnValueOnce({ok:false,issues:[{code:'AGGREGATE_LIMIT',path:[],messageKey:'validation.AGGREGATE_LIMIT'}]});
