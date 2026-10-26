@@ -2,7 +2,7 @@
 
 PYTHONPATH=.python-deps PLAYWRIGHT_BROWSERS_PATH=.browser-cache python3 scripts/redesign-browser.py
 Optional: SONARORAAAH_ORIGIN and SONARORAAAH_BROWSER (default chromium).
-All delays below belong to the test harness, never the application.
+The application uses a shared five-second minimum loading duration.
 """
 import json
 import os
@@ -72,6 +72,16 @@ with sync_playwright() as playwright:
         page.screenshot(path=str(OUTPUT/f'03-compare-{width}.png'),full_page=True)
         page.get_by_role('tab',name='List',exact=True).click()
         check(page.locator('#comparison table').first.locator('tbody tr').count()==3,f'{width}: comparison table contains all strategies')
+        check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),f'{width}: list scroll stays inside the table')
+        check(page.locator('.comparison-table tbody td:not(:first-child)').evaluate_all("nodes=>nodes.every(node=>{const range=document.createRange();range.selectNodeContents(node);return new Set([...range.getClientRects()].map(rect=>Math.round(rect.top))).size===1;})"),f'{width}: list amounts remain on a single line')
+        if width==360:
+            region=page.get_by_role('region',name='Comparison figures',exact=True)
+            check(region.evaluate('node=>node.scrollWidth>node.clientWidth'),f'{width}: readable columns can scroll sideways')
+            region.focus()
+            page.keyboard.press('ArrowRight')
+            page.wait_for_function("document.querySelector('.comparison-table').parentElement.scrollLeft>0")
+            check(True,f'{width}: keyboard can scroll the comparison list')
+
         page.get_by_role('tab',name='Cards',exact=True).click()
         page.get_by_role('link',name='Check a purchase',exact=True).click()
         check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),f'{width}: purchase plan fits viewport')
@@ -79,20 +89,19 @@ with sync_playwright() as playwright:
         page.get_by_role('button',name='I understand and want to continue',exact=True).click()
         check(page.locator('#splitAcceptance').is_visible(),f'{width}: continue reveals supplier inputs without a transaction')
         page.get_by_role('link',name='Your money',exact=True).click()
-        if page.locator('[data-slot=collapsible-trigger]').get_attribute('aria-expanded')=='false':
-            page.locator('[data-slot=collapsible-trigger]').click()
+        workspace_height=page.locator('.home-workspace').evaluate('node=>node.getBoundingClientRect().height')
+        page.get_by_role('button',name='More details',exact=True).click()
+        check(abs(page.locator('.home-workspace').evaluate('node=>node.getBoundingClientRect().height')-workspace_height)<1,f'{width}: details modal does not stretch the money page')
+        check(page.locator('.details-dialog-body').evaluate('node=>node.scrollHeight>node.clientHeight'),f'{width}: longer details scroll inside the modal')
         page.locator('#notes').fill('Invented example for review. These notes do not affect the model.')
         check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),f'{width}: expanded details fit viewport')
-        page.screenshot(path=str(OUTPUT/f'05-details-{width}.png'),full_page=True)
+        page.locator('.details-dialog-body').evaluate('node=>node.scrollTop=0')
+        page.screenshot(path=str(OUTPUT/f'05-details-{width}.png'))
+        page.get_by_role('dialog',name='More details',exact=True).get_by_role('button',name='Done',exact=True).click()
         page.locator('#cash').fill('601')
         check(page.locator('.result-highlight').count()==0 and 'Inputs changed, compare again' in page.locator('.result-panel').inner_text(),f'{width}: financial edit clears visible result immediately')
         page.get_by_role('button',name='Clear all',exact=True).click()
         check(page.locator('#notes').input_value()=='' and page.locator('#cash').input_value()=='',f'{width}: clear removes optional notes and financial entries')
-        # Make only zero-delay callbacks slow to observe real pending UI. This is test-only.
-        page.evaluate("""() => {
-            const schedule=window.setTimeout.bind(window);
-            window.setTimeout=(callback,delay,...args)=>schedule(callback,delay===0?2500:delay,...args);
-        }""")
         page.locator('#inputs').get_by_role('button',name='Use example',exact=True).click()
         loading=page.locator('.loading-state-compact:visible')
         loading.wait_for()
@@ -111,6 +120,26 @@ with sync_playwright() as playwright:
         page.get_by_role('heading',name='Next purchase: wait',exact=True).wait_for()
         check(not errors,f'{width}: no browser exceptions')
         page.close()
+    for width,height in [(810,777),(1024,900),(1280,900)]:
+        page=browser.new_page(viewport={'width':width,'height':height},reduced_motion='reduce')
+        page.goto(ORIGIN)
+        page.locator('#inputs').get_by_role('button',name='Use example',exact=True).click()
+        page.locator('.result-highlight').wait_for()
+        layout=page.evaluate("""() => {
+            const input=document.querySelector('.input-panel').getBoundingClientRect();
+            const result=document.querySelector('.result-panel').getBoundingClientRect();
+            const workspace=document.querySelector('.home-workspace').getBoundingClientRect();
+            return {input:input.toJSON(),result:result.toJSON(),workspace:workspace.toJSON(),cash:document.querySelector('#cash').getBoundingClientRect().width,action:document.querySelector('.form-actions').getBoundingClientRect().bottom};
+        }""")
+        check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),f'{width}: responsive workspace has no horizontal overflow')
+        if width<=1024:
+            check(layout['result']['top']>=layout['input']['bottom'] and layout['input']['width']>=layout['workspace']['width']*.9,f'{width}: tablet form uses full workspace width above results')
+            check(layout['cash']>=260,f'{width}: tablet cash field retains readable width')
+            check(layout['action']<=height,f'{width}: tablet main action stays in the first screen')
+        else:
+            check(layout['result']['left']>=layout['input']['right']-1,f'{width}: desktop retains side-by-side panels')
+        page.screenshot(path=str(OUTPUT/f'tablet-workspace-{width}.png'),full_page=True)
+        page.close()
     browser.close()
-(OUTPUT/'results.json').write_text(json.dumps({'status':'passed','family':FAMILY,'checks':checks,'count':len(checks),'viewports':[360,1280]},indent=2)+'\n')
+(OUTPUT/'results.json').write_text(json.dumps({'status':'passed','family':FAMILY,'checks':checks,'count':len(checks),'viewports':[360,810,1024,1280]},indent=2)+'\n')
 print(f'{len(checks)}/{len(checks)} redesign checks passed',flush=True)

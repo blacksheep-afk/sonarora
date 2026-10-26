@@ -77,44 +77,57 @@ try:
         check(page.evaluate('document.activeElement.getAttribute("href")') == '#inputs', 'Keyboard reaches first workflow link')
         page.keyboard.press('Tab')
         check(page.evaluate('document.activeElement.getAttribute("href")') == '#comparison', 'Keyboard follows logical workflow order')
+        def close_more_details():
+            dialog=page.get_by_role('dialog',name='More details',exact=True)
+            if dialog.is_visible():
+                dialog.get_by_role('button',name='Done',exact=True).click()
         def go_inputs():
+            close_more_details()
             if not page.locator('#inputs').is_visible():
                 page.get_by_role('link',name='Your money',exact=True).click()
         def go_staged():
+            close_more_details()
             if not page.locator('#safe-to-buy').is_visible():
                 page.get_by_role('link',name='Check a purchase',exact=True).click()
             if not page.locator('.staged-checkpoint').is_visible():
                 page.get_by_role('button',name='I understand and want to continue',exact=True).click()
         def open_details():
-            trigger=page.locator('[data-slot=collapsible-trigger]')
-            if trigger.is_visible() and trigger.get_attribute('data-state')=='closed':
-                trigger.click()
             page.locator('details').evaluate_all('(nodes)=>nodes.forEach(n=>n.open=true)')
-        def fill(values):
+        def example():
+            go_inputs()
+            page.get_by_role('button',name='Use example',exact=True).first.click()
+            page.locator('.result-highlight').wait_for()
             open_details()
+        def fill(values):
+            extra={'bill2','receiptTiming','billPriority','grossSales','salesLagDays','salesProbability','relation','emergencyAmount','emergencyDay'}
+            main={'cash','bank','receivable','receiptDay','bill1','dueDay','stockCost','receiptProbability'}
             for key,value in values.items():
-                node=page.locator('#'+key)
-                if node.evaluate("n=>Boolean(n.closest('#safe-to-buy'))"):
-                    go_staged()
-                else:
+                if key in extra:
+                    if not page.get_by_role('dialog',name='More details',exact=True).is_visible():
+                        go_inputs()
+                        page.get_by_role('button',name='More details',exact=True).click()
+                elif key in main:
                     go_inputs()
-                open_details()
-                if node.evaluate('(n)=>n.tagName') == 'SELECT':
+                else:
+                    go_staged()
+                    open_details()
+                node=page.locator('#'+key)
+                if node.evaluate('n=>n.tagName')=='SELECT':
                     node.select_option(value)
                 else:
                     node.fill(value)
+            close_more_details()
         def compare():
             go_inputs()
             page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
             page.locator('[data-strategy=trigger]').wait_for()
             open_details()
-        def example():
-            go_inputs()
-            page.get_by_role('button',name='Use example',exact=True).first.click()
-            open_details()
-        page.locator('[data-slot=collapsible-trigger]').focus()
+        page.locator('[data-slot=dialog-trigger]').focus()
         page.keyboard.press('Enter')
-        check(page.locator('[data-slot=collapsible-trigger]').get_attribute('aria-expanded')=='true','Keyboard Enter opens advanced-assumption disclosure')
+        check(page.get_by_role('dialog',name='More details',exact=True).is_visible(),'Keyboard Enter opens More details dialog')
+        page.keyboard.press('Escape')
+        page.wait_for_function("document.querySelector('[data-slot=dialog-trigger]')===document.activeElement")
+        check(page.locator('[data-slot=dialog-trigger]').evaluate('n=>n===document.activeElement'),'Escape closes dialog and restores trigger focus')
         example()
         compare()
         check(page.evaluate('document.documentElement.scrollWidth <= innerWidth'),'No horizontal overflow at 1280px')
@@ -214,7 +227,7 @@ try:
         page.evaluate("""async () => {
             [...document.querySelectorAll('button')].find(b=>b.textContent==='Compare options').click();
             [...document.querySelectorAll('button')].find(b=>b.textContent==='Clear all').click();
-            await new Promise(resolve=>setTimeout(resolve,100));
+            await new Promise(resolve=>setTimeout(resolve,5100));
         }""")
         check(page.locator('[data-strategy]').count()==0 and page.locator('#cash').input_value()=='','Delayed comparison cannot populate a new decision session')
         hardening=run_hardening(page,check,OUTPUT,ROOT)
@@ -222,7 +235,7 @@ try:
         check(not errors,'No application browser exceptions')
         browser.close()
         browser=None
-    (OUTPUT/'results.json').write_text(json.dumps({'status':'passed','family':FAMILY,'browserVersion':browser_version,'passed':len(checks),'baselineAssertions':40,'hardeningAssertions':len(checks)-40,'checks':checks,'hardening':hardening,'viewports':[1280,390,320],'screenshots':['desktop.png','mobile.png','hardened-desktop.png','hardened-mobile.png']},indent=2),encoding='utf-8')
+    (OUTPUT/'results.json').write_text(json.dumps({'status':'passed','family':FAMILY,'browserVersion':browser_version,'passed':len(checks),'baselineAssertions':41,'hardeningAssertions':len(checks)-41,'checks':checks,'hardening':hardening,'viewports':[1280,390,320],'screenshots':['desktop.png','mobile.png','hardened-desktop.png','hardened-mobile.png']},indent=2),encoding='utf-8')
     print(str(len(checks))+'/'+str(len(checks))+' application browser checks passed',flush=True)
 except BaseException as error:
     (OUTPUT/'results.json').write_text(json.dumps({'status':'failed','family':FAMILY,'browserVersion':locals().get('browser_version'),'passedBeforeFailure':len(checks),'error':str(error)},indent=2),encoding='utf-8')

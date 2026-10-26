@@ -32,36 +32,46 @@ def run_hardening(page, check, output, root):
                 {'id':v['id'],'targets':[n['target'] for n in v['nodes']]}
                 for v in result['violations']]))
         check(True, 'axe '+name+': zero violations in configured rules')
+    def close_more_details():
+        dialog=page.get_by_role('dialog',name='More details',exact=True)
+        if dialog.is_visible():
+            dialog.get_by_role('button',name='Done',exact=True).click()
     def go_inputs():
+        close_more_details()
         if not page.locator('#inputs').is_visible():
             page.get_by_role('link',name='Your money',exact=True).click()
     def go_staged():
+        close_more_details()
         if not page.locator('#safe-to-buy').is_visible():
             page.get_by_role('link',name='Check a purchase',exact=True).click()
         if not page.locator('.staged-checkpoint').is_visible():
             page.get_by_role('button',name='I understand and want to continue',exact=True).click()
     def open_details():
-        trigger=page.locator('[data-slot=collapsible-trigger]')
-        if trigger.is_visible() and trigger.get_attribute('data-state')=='closed':
-            trigger.click()
         page.locator('details').evaluate_all('(nodes)=>nodes.forEach(n=>n.open=true)')
     def example():
         go_inputs()
         page.get_by_role('button',name='Use example',exact=True).first.click()
+        page.locator('.result-highlight').wait_for()
         open_details()
     def fill(values):
-        open_details()
+        extra={'bill2','receiptTiming','billPriority','grossSales','salesLagDays','salesProbability','relation','emergencyAmount','emergencyDay'}
+        main={'cash','bank','receivable','receiptDay','bill1','dueDay','stockCost','receiptProbability'}
         for key,value in values.items():
-            node=page.locator('#'+key)
-            if node.evaluate("n=>Boolean(n.closest('#safe-to-buy'))"):
-                go_staged()
-            else:
+            if key in extra:
+                if not page.get_by_role('dialog',name='More details',exact=True).is_visible():
+                    go_inputs()
+                    page.get_by_role('button',name='More details',exact=True).click()
+            elif key in main:
                 go_inputs()
-            open_details()
+            else:
+                go_staged()
+                open_details()
+            node=page.locator('#'+key)
             if node.evaluate('n=>n.tagName')=='SELECT':
                 node.select_option(value)
             else:
                 node.fill(value)
+        close_more_details()
     def compare():
         go_inputs()
         page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
@@ -96,12 +106,14 @@ def run_hardening(page, check, output, root):
     page.locator('#cash[aria-invalid=true]').wait_for()
     fill({'salesProbability':'wrong'})
     page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
+    page.get_by_role('button',name='More details',exact=True).click()
     page.locator('#salesProbability-error').wait_for()
-    page.locator('[data-slot=collapsible-trigger]').click()
+    close_more_details()
     page.locator('.error-summary a[href="#salesProbability"]').click()
     check(page.evaluate("document.activeElement.id==='salesProbability'") and
           page.locator('#salesProbability').is_visible(),
           'Error summary link opens disclosure and restores field focus')
+    close_more_details()
     page.set_viewport_size({'width':390,'height':844})
     page.locator('#cash-error').evaluate("n=>n.textContent='Long validation description '+('VeryLongFinancialExplanation'.repeat(80))")
     check(no_overflow(),'Very long unbroken validation descriptions reflow at 390px')
