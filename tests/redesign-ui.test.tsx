@@ -44,9 +44,44 @@ describe('redesigned decision flow',()=>{
   });
   it('invalidates the current result immediately when a probability preset changes',()=>{
     click('Use example');finish();expect(host.querySelector('.result-highlight')).not.toBeNull();
-    act(()=>host.querySelector<HTMLButtonElement>('button[aria-label="Unlikely: 0.25 probability"]')!.click());
+    act(()=>{const select=host.querySelector<HTMLSelectElement>('#receiptProbability')!;select.value='0.25';select.dispatchEvent(new Event('change',{bubbles:true}));});
     expect(host.querySelector('.result-highlight')).toBeNull();
     expect(host.querySelector<HTMLInputElement>('#receiptProbability')?.value).toBe('0.25');
     expect(host.textContent).toContain('Inputs changed, compare again');
   });
+  it('keeps modal edits when closed and invalidates the old result immediately',()=>{
+    click('Use example');finish();click('More details');
+    const bill=host.querySelector<HTMLInputElement>('#bill2')!;
+    act(()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(bill,'100');bill.dispatchEvent(new Event('input',{bubbles:true}));});
+    expect(host.querySelector('.result-highlight')).toBeNull();
+    click('Done');expect(host.querySelector('[role=dialog]')).toBeNull();
+    click('More details');expect(host.querySelector<HTMLInputElement>('#bill2')?.value).toBe('100');
+  });
+  it('opens the modal and focuses the first invalid extra field on submit',()=>{
+    click('Use example');finish();click('More details');
+    const bill=host.querySelector<HTMLInputElement>('#bill2')!;
+    act(()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(bill,'');bill.dispatchEvent(new Event('input',{bubbles:true}));});
+    click('Done');click('Compare options');finish();
+    expect(host.querySelector('[role=dialog]')).not.toBeNull();
+    expect(document.activeElement?.id).toBe('bill2');
+    expect(host.querySelector('#bill2')?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('keeps every calculation loading for at least five seconds',()=>{
+    click('Use example');
+    act(()=>vi.advanceTimersByTime(4999));
+    expect(visibleLoading()).toHaveLength(1);
+    expect(host.querySelector('.result-highlight')).toBeNull();
+    act(()=>vi.advanceTimersByTime(1));
+    expect(visibleLoading()).toHaveLength(0);
+    expect(host.querySelector('.result-highlight')).not.toBeNull();
+    click('Compare options');
+    act(()=>vi.advanceTimersByTime(4999));expect(visibleLoading()).toHaveLength(1);
+    act(()=>vi.advanceTimersByTime(1));expect(visibleLoading()).toHaveLength(0);
+    act(()=>host.querySelector<HTMLAnchorElement>('a[href="#safe-to-buy"]')!.click());
+    click('I understand and want to continue');click('Check smaller purchases');
+    act(()=>vi.advanceTimersByTime(4999));expect(visibleLoading()).toHaveLength(1);
+    act(()=>vi.advanceTimersByTime(1));expect(visibleLoading()).toHaveLength(0);
+  });
+
 });

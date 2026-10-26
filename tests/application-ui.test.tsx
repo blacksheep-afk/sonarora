@@ -5,11 +5,12 @@ import type { Root } from 'react-dom/client';
 import App from '../src/App';
 import * as adapter from '../src/application/adapter';
 let host:HTMLDivElement,root:Root;
-beforeEach(()=>{history.replaceState({},'','/');Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});host=document.createElement('div');document.body.append(host);root=createRoot(host);act(()=>root.render(<App/>));});
+beforeEach(()=>{history.replaceState({},'','/');vi.useFakeTimers();Object.assign(globalThis,{IS_REACT_ACT_ENVIRONMENT:true});host=document.createElement('div');document.body.append(host);root=createRoot(host);act(()=>root.render(<App/>));});
 afterEach(()=>{act(()=>root.unmount());host.remove();vi.useRealTimers();vi.restoreAllMocks();});
 function button(text:string):HTMLButtonElement {const b=[...host.querySelectorAll('button')].find(e=>e.textContent===text);if(!b)throw new Error(text);return b;}
-async function click(text:string){await act(async()=>{button(text).click();await new Promise(r=>setTimeout(r,20));});}
-function input(id:string,value:string){const node=host.querySelector<HTMLInputElement>('#'+id)!;act(()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(node,value);node.dispatchEvent(new Event('input',{bubbles:true}));});}
+async function click(text:string){await act(async()=>{if(text==='Compare options' && host.querySelector('[role=dialog]'))button('Done').click();button(text).click();await vi.advanceTimersByTimeAsync(5000);});}
+function input(id:string,value:string){if(!host.querySelector('#'+id))act(()=>button('More details').click());
+ const node=host.querySelector<HTMLInputElement|HTMLSelectElement>('#'+id)!;act(()=>{Object.getOwnPropertyDescriptor(node instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype,'value')!.set!.call(node,value);node.dispatchEvent(new Event(node instanceof HTMLSelectElement?'change':'input',{bubbles:true}));});}
 describe('actual React integration',()=>{
  it('submits valid drafts and renders all three engine strategy cards and timeline',async()=>{await click('Use example');await click('Compare options');expect(host.querySelectorAll('[data-strategy]')).toHaveLength(3);expect(host.textContent).toContain('Day 30');expect(host.textContent).toContain('We have not checked');});
  it('removes the comparison synchronously on financial input and never reuses it for invalid text',async()=>{await click('Use example');await click('Compare options');input('cash','0.001');expect(host.querySelector('[data-strategy]')).toBe(null);await click('Compare options');expect(host.querySelector('#cash')?.getAttribute('aria-invalid')).toBe('true');expect(document.activeElement?.id).toBe('cash');expect(host.textContent).toContain('Fractional cents');});
