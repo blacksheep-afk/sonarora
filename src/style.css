@@ -244,12 +244,16 @@ details[open]>summary { margin-bottom:.7rem; }
 .staged-checkpoint dd { margin:0; font-weight:750; font-variant-numeric:tabular-nums; }
 .check { display:flex; align-items:center; gap:.75rem; min-height:44px; margin:.5rem 0; padding:.5rem 0; font-weight:400; font-size:.9rem; }
 .check input { width:20px; height:20px; min-height:20px; flex-shrink:0; accent-color:var(--primary); }
-.error-summary { margin:1rem 0; background:var(--risk-high-surface); color:var(--destructive); padding:1rem; border-radius:6px; }
-.error-summary h2 { color:inherit; font-size:1.1rem; }
-.error-summary ul { padding-left:1.25rem; }
-.error-summary a { display:inline-block; min-height:44px; padding-block:.5rem; color:inherit; }
-.error { color:var(--destructive); font-size:.85rem; }
-input[aria-invalid=true],select[aria-invalid=true] { outline:2px dashed var(--destructive); outline-offset:2px; }
+.error-summary { margin:1rem 0; background:var(--secondary); color:var(--foreground); padding:1rem 1.25rem; border:1px solid var(--border); border-left:3px solid var(--primary); border-radius:8px; overflow-wrap:anywhere; }
+.error-summary h2 { color:inherit; font-size:1rem; margin:0 0 .35rem; }
+.error-summary p { margin:.35rem 0; font-size:.9rem; }
+.error-summary a { display:inline-flex; align-items:center; min-height:44px; color:var(--secondary-foreground); font-weight:650; text-decoration:underline; text-underline-offset:3px; }
+.error-instruction { display:block; }
+.error-list { margin-top:.5rem; }
+.error-list summary { min-height:44px; display:list-item; align-content:center; color:var(--secondary-foreground); cursor:pointer; }
+.error-actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem; }
+.error { color:var(--destructive); font-size:.85rem; line-height:1.45; }
+input[aria-invalid=true],select[aria-invalid=true] { border-color:var(--destructive); }
 .icon-brand { color:var(--primary); background:var(--secondary); }
 .icon-high { color:var(--risk-high); background:var(--risk-high-surface); }
 .icon-medium { color:var(--risk-medium); background:var(--risk-medium-surface); }
