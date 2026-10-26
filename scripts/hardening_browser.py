@@ -176,8 +176,15 @@ def run_hardening(page, check, output, root):
           'receiptProbability':'0','salesProbability':'0'})
     compare()
     card=page.locator('[data-strategy=now]')
-    check(card.locator('dd').first.inner_text()=='0%' and 'R100.00' in card.inner_text() and 'R-100.00' in card.inner_text(),
-          'Emergency-only debt shows zero essential risk but unpaid expense and negative net')
+    # The first DD duplicates the visible donut percentage and is visually clipped.
+    # WebKit omits that clipped text from innerText; verify the visible figures.
+    risk=card.locator('.donut-label strong')
+    metrics=card.locator('.strategy-metrics dd')
+    unpaid,net=metrics.nth(1),metrics.nth(3)
+    actual={'risk':risk.inner_text(),'unpaid':unpaid.inner_text(),'net':net.inner_text()}
+    check(all(node.is_visible() for node in [risk,unpaid,net]) and
+          actual=={'risk':'0%','unpaid':'R100.00','net':'R-100.00'},
+          'Emergency-only debt shows zero essential risk but unpaid expense and negative net: '+json.dumps(actual))
     example()
     confirm()
     for _ in range(3):
