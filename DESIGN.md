@@ -70,3 +70,5 @@ The inherited WebKit native-Tab failure appears in both baseline and final full 
 Money Map is available only on Compare options, following the user’s step-by-step review. It is absent from Your money.
 
 The comparison List keeps an 880px minimum table width within its own horizontally scrollable region. Text wraps between words, numeric cells stay on one line, and the labelled region is keyboard focusable. A narrow-screen hint explains sideways scrolling.
+
+Validation uses a neutral teal-accented notice with one next step. Additional issues stay in a native “See all” disclosure; field links open the relevant modal or section and preserve keyboard focus. Field errors use brief instructions and a restrained border. Unexpected failures retain the entered values and offer Try again. Technical engine paths stay out of public messages.
