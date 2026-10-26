@@ -1,7 +1,8 @@
 import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
 
-/** One loading language for startup, comparison and staged checks. Never delays work. */
+/** Shared minimum visibility requested for startup and every calculation run. */
+export const MIN_LOADING_MS = 5000;
 export function LoadingState({ compact = false }: { compact?: boolean }) {
   return <div className={cn('loading-state', compact && 'loading-state-compact')}
     role="status" aria-live="polite" aria-busy="true">
