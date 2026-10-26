@@ -8,6 +8,10 @@ def run_hardening(page, check, output, root):
     axe_path = root / 'node_modules' / 'axe-core' / 'axe.min.js'
     if not axe_path.is_file():
         raise RuntimeError('Approved axe-core 4.14.0 is missing; run npm ci')
+    def wait_for_app():
+        # Navigation can finish during the static or React startup loading screen.
+        # Wait for React content without assuming the landmarks under audit exist.
+        page.locator('#root > :not(.boot-loading):not(.loading-state)').first.wait_for(state='visible')
     def audit(name):
         if not page.evaluate("typeof axe !== 'undefined'"):
             page.add_script_tag(path=str(axe_path))
@@ -90,6 +94,7 @@ def run_hardening(page, check, output, root):
     def no_overflow():
         return page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.goto(origin)
+    wait_for_app()
     page.set_viewport_size({'width':1280,'height':900})
     audit('empty-desktop')
     headings=page.locator('h1,h2,h3,h4,h5,h6').evaluate_all('(nodes)=>nodes.filter(n=>n.getClientRects().length).map(n=>Number(n.tagName[1]))')
@@ -120,6 +125,7 @@ def run_hardening(page, check, output, root):
     check(no_overflow(),'Very long unbroken validation descriptions reflow at 390px')
     audit('invalid-mobile-long-copy')
     page.reload()
+    wait_for_app()
     check(page.locator('#cash').input_value()=='' and page.locator('[data-strategy]').count()==0,
           'Reload after malformed inputs begins without results or financial entries')
     page.set_viewport_size({'width':1280,'height':900})
@@ -204,6 +210,7 @@ def run_hardening(page, check, output, root):
         check(no_overflow(),'200% text enlargement reflows at '+str(width)+'px')
     audit('enlarged-text-320')
     page.goto(origin)
+    wait_for_app()
     page.set_viewport_size({'width':1280,'height':900})
     example()
     compare()
@@ -216,6 +223,7 @@ def run_hardening(page, check, output, root):
     page.go_forward()
     check(page.locator('[data-strategy]').count()==0,'Forward navigation keeps edited results invalid')
     page.reload()
+    wait_for_app()
     check(page.locator('#cash').input_value()=='' and page.locator('[data-strategy]').count()==0
           and page.get_by_role('checkbox',checked=True).count()==0,
           'Browser refresh discards prior financial session and confirmations')
