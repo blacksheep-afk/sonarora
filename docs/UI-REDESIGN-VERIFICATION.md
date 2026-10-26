@@ -99,3 +99,18 @@ Validation: 313 unit tests passed; lint, typecheck, architecture checks and prod
 ### 26 October — one-view money page
 
 The main actions now share a row, and desktop spacing is tighter while retaining the input hints and prototype notice. Focused Chromium checks confirmed the empty and example-loaded home page fits without document scrolling at 1280×720, 1366×768 and 1440×900. The details modal opens without extending the page. At 390px the layout keeps readable fields and uses vertical scrolling; additional errors, expanded content and larger text may also need scrolling. The desktop example-state axe scan found zero violations. All 313 unit tests, lint, typecheck and production build passed.
+
+
+### 26 October — revised loading timing
+
+The latest request supersedes the earlier shared timing policy: startup now uses three seconds, and the home result has no loading indicator or artificial wait. The separate comparison and purchase screens retain their five-second timing. Focused Chromium verification measured startup at 3.31 seconds and the example home result at 98 milliseconds with no loader observed. All 313 unit tests, lint, typecheck and production build passed.
+
+
+### 26 October — startup-only loading
+
+The latest screenshot feedback removes branded loading from the comparison and purchase screens as well. All calculations now run without an artificial delay. Comparison pending states no longer show the changed-input empty state. The three-second startup splash remains. All 313 unit tests, lint, typecheck and build passed; focused browser verification checks immediate comparison and purchase results without an in-app loader.
+
+
+### 26 October — purchase-check popup
+
+The continue action now opens the supplier, payment and bill inputs in a dialog rather than extending the purchase page. The dialog retains entered values when closed and keeps validation/failure notices inside its focus boundary. Focused Chromium and WebKit checks at 1280px and 390px verified unchanged page height, internal scrolling, input-error focus, calculation results, retained values, Escape focus restoration and zero axe violations. All 314 unit tests, lint, typecheck and build passed. The complete cross-browser gate was not rerun.

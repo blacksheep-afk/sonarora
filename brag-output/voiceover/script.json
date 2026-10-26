@@ -1,0 +1,56 @@
+[
+  {
+    "id": "01-choice",
+    "start": 0.4,
+    "end": 6.8,
+    "text": "You need stock for your business. You also have bills to pay. What comes first?"
+  },
+  {
+    "id": "02-introduction",
+    "start": 7.4,
+    "end": 13.8,
+    "text": "Meet Sonarora. Explore the trade-offs before you buy stock, using the numbers you enter."
+  },
+  {
+    "id": "03-inputs",
+    "start": 14.4,
+    "end": 24.8,
+    "text": "Start with your cash and bank money. Add your bill, stock cost, and expected payment. Enter the payment day and choose how likely it is to arrive."
+  },
+  {
+    "id": "04-results",
+    "start": 25.4,
+    "end": 34.8,
+    "text": "Your result shows the modelled chance of missing an essential bill. These are estimates based on your numbers. Zero modelled risk is not a guarantee."
+  },
+  {
+    "id": "05-comparison",
+    "start": 35.4,
+    "end": 45.8,
+    "text": "Compare buying now, waiting until after bill day, or buying after the payment arrives. In this example, two options have the same modelled risk."
+  },
+  {
+    "id": "06-money-map",
+    "start": 46.4,
+    "end": 56.8,
+    "text": "The Money Map follows one possible outcome. See when stock is bought, money arrives, and bills fall due. A missed bill stays unpaid in this model."
+  },
+  {
+    "id": "07-smaller-purchases",
+    "start": 57.4,
+    "end": 67.8,
+    "text": "Could smaller purchases help? Open the purchase check. Add the supplier's rules, delivery costs, and bills still to pay, then check a smaller first order."
+  },
+  {
+    "id": "08-privacy",
+    "start": 68.2,
+    "end": 74.8,
+    "text": "No bank connection. No payments. Nothing is saved. Your numbers stay in this session."
+  },
+  {
+    "id": "09-outro",
+    "start": 75.3,
+    "end": 79.8,
+    "text": "Sonarora. See the trade-offs. Independent prototype. Not financial advice."
+  }
+]

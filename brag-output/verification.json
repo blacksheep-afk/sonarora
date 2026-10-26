@@ -1,0 +1,25 @@
+{
+  "durationSeconds": 80.0,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "frames": 2400,
+  "bytes": 5546998,
+  "videoCodec": "h264",
+  "audioCodec": "aac",
+  "audioLevels": [
+    "[Parsed_volumedetect_0 @ 0x1307052e0] mean_volume: -27.0 dB",
+    "[Parsed_volumedetect_0 @ 0x1307052e0] max_volume: -4.9 dB"
+  ],
+  "posterSourceSeconds": 11,
+  "posterBakedIntoFrameZero": true,
+  "hyperframesCheckPassed": true,
+  "contrastChecks": 24,
+  "contrastPassed": 24,
+  "notes": [
+    "Eight craft warnings are intentional 3\u20136 second reading holds for this 80-second caption-led film.",
+    "No narration requested or generated.",
+    "All UI captures use the app\u2019s invented example.",
+    "No upload or publication performed."
+  ]
+}

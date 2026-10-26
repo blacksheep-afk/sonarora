@@ -37,9 +37,10 @@ def run_hardening(page, check, output, root):
                 for v in result['violations']]))
         check(True, 'axe '+name+': zero violations in configured rules')
     def close_more_details():
-        dialog=page.get_by_role('dialog',name='More details',exact=True)
+        dialog=page.get_by_role('dialog')
         if dialog.is_visible():
             dialog.get_by_role('button',name='Done',exact=True).click()
+            dialog.wait_for(state='hidden')
     def go_inputs():
         close_more_details()
         if not page.locator('#inputs').is_visible():

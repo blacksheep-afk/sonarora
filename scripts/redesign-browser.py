@@ -2,7 +2,7 @@
 
 PYTHONPATH=.python-deps PLAYWRIGHT_BROWSERS_PATH=.browser-cache python3 scripts/redesign-browser.py
 Optional: SONARORAAAH_ORIGIN and SONARORAAAH_BROWSER (default chromium).
-The application uses a shared five-second minimum loading duration.
+Only startup uses a three-second loader; calculations have no artificial delay.
 """
 import json
 import os
@@ -87,7 +87,8 @@ with sync_playwright() as playwright:
         check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),f'{width}: purchase plan fits viewport')
         page.screenshot(path=str(OUTPUT/f'04-purchase-{width}.png'),full_page=True)
         page.get_by_role('button',name='I understand and want to continue',exact=True).click()
-        check(page.locator('#splitAcceptance').is_visible(),f'{width}: continue reveals supplier inputs without a transaction')
+        check(page.get_by_role('dialog',name='Check smaller purchases',exact=True).is_visible() and page.locator('#splitAcceptance').is_visible(),f'{width}: continue opens supplier inputs in a modal without a transaction')
+        page.get_by_role('dialog',name='Check smaller purchases',exact=True).get_by_role('button',name='Done',exact=True).click()
         page.get_by_role('link',name='Your money',exact=True).click()
         workspace_height=page.locator('.home-workspace').evaluate('node=>node.getBoundingClientRect().height')
         page.get_by_role('button',name='More details',exact=True).click()
@@ -103,20 +104,15 @@ with sync_playwright() as playwright:
         page.get_by_role('button',name='Clear all',exact=True).click()
         check(page.locator('#notes').input_value()=='' and page.locator('#cash').input_value()=='',f'{width}: clear removes optional notes and financial entries')
         page.locator('#inputs').get_by_role('button',name='Use example',exact=True).click()
-        loading=page.locator('.loading-state-compact:visible')
-        loading.wait_for()
-        check(loading.count()==1 and loading.get_by_role('progressbar',name='Loading Sonarora').count()==1,f'{width}: comparison has one calm named progress indicator')
-        loading.screenshot(path=str(OUTPUT/f'loading-comparison-{width}.png'))
         page.locator('.result-highlight').wait_for()
+        page.locator('#inputs').get_by_role('button',name='Compare options',exact=True).click()
+        page.locator('#comparison [data-strategy=now]').wait_for()
+        check(page.locator('.loading-state-compact').count()==0,f'{width}: comparison has no branded loading state')
         page.get_by_role('link',name='Check a purchase',exact=True).click()
         if not page.locator('.staged-checkpoint').is_visible():
             page.get_by_role('button',name='I understand and want to continue',exact=True).click()
         page.get_by_role('button',name='Check smaller purchases',exact=True).click()
-        loading.wait_for()
-        check(loading.count()==1 and loading.inner_text()=='Sonarora\nLoading…',f'{width}: staged checks reuse the identical loading language')
-        loading.scroll_into_view_if_needed()
-        loading.screenshot(path=str(OUTPUT/f'loading-purchase-{width}.png'))
-        page.screenshot(path=str(OUTPUT/f'loading-purchase-context-{width}.png'))
+        check(page.locator('.loading-state-compact').count()==0,f'{width}: purchase check has no branded loading state')
         page.get_by_role('heading',name='Next purchase: wait',exact=True).wait_for()
         check(not errors,f'{width}: no browser exceptions')
         page.close()
