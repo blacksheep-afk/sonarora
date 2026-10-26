@@ -1,8 +1,8 @@
 import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
 
-/** Shared minimum visibility requested for startup and every calculation run. */
-export const MIN_LOADING_MS = 5000;
+/** The startup splash is the only branded loading state. */
+export const STARTUP_LOADING_MS = 3000;
 export function LoadingState({ compact = false }: { compact?: boolean }) {
   return <div className={cn('loading-state', compact && 'loading-state-compact')}
     role="status" aria-live="polite" aria-busy="true">

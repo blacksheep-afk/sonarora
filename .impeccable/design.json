@@ -114,7 +114,9 @@
     "animation": "1.5s ease-in-out infinite alternate",
     "reducedMotion": "animation disabled",
     "artificialMinimumDelay": true,
-    "minimumDurationMs": 5000
+    "startupDurationMs": 3000,
+    "calculationMinimumDurationMs": 0,
+    "homeResultLoader": false
   },
   "principles": [
     "plain English",

@@ -78,9 +78,10 @@ try:
         page.keyboard.press('Tab')
         check(page.evaluate('document.activeElement.getAttribute("href")') == '#comparison', 'Keyboard follows logical workflow order')
         def close_more_details():
-            dialog=page.get_by_role('dialog',name='More details',exact=True)
+            dialog=page.get_by_role('dialog')
             if dialog.is_visible():
                 dialog.get_by_role('button',name='Done',exact=True).click()
+                dialog.wait_for(state='hidden')
         def go_inputs():
             close_more_details()
             if not page.locator('#inputs').is_visible():

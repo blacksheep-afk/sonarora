@@ -57,7 +57,7 @@ Radius tokens are 10px control, 6px input and 14px panel. Actual component rules
 
 ## States and accessibility
 
-Startup HTML displays a centered Sonarora wordmark, “Protect bills first”, a thin travelling bar and “Loading…”, shown for at least five seconds before the application appears. Pending comparisons and purchase checks use the same quiet wordmark/bar/status language inside their panel; compact loading omits the tagline. The bar is indeterminate, not a numerical progress estimate. Startup and every calculation use a shared five-second minimum loading duration, as requested for repeat demonstrations.
+Startup HTML displays a centered Sonarora wordmark, “Protect bills first”, a thin travelling bar and “Loading…”, shown for three seconds before the application appears. The home result appears without a loader or forced delay. Calculation screens have no branded loading state. The bar is indeterminate, not a numerical progress estimate. All calculations run without an artificial wait.
 
 Controls and navigation have 44px minimum targets. Focus uses a 3px teal outline with 3px offset; money inputs use a wrapper focus ring. Associated labels remain when visually hidden behind fieldset legends. A focusable error summary links to fields and opens relevant details. Status uses polite live regions and pending states identify busy content. Reduced-motion rules disable animation and transitions, including the startup bar. Chart text/table alternatives and pressed-state selection remain available. Print styles prioritize results and hide controls and inputs.
 
@@ -72,3 +72,5 @@ Money Map is available only on Compare options, following the user’s step-by-s
 The comparison List keeps an 880px minimum table width within its own horizontally scrollable region. Text wraps between words, numeric cells stay on one line, and the labelled region is keyboard focusable. A narrow-screen hint explains sideways scrolling.
 
 Validation uses a neutral teal-accented notice with one next step. Additional issues stay in a native “See all” disclosure; field links open the relevant modal or section and preserve keyboard focus. Field errors use brief instructions and a restrained border. Unexpected failures retain the entered values and offer Try again. Technical engine paths stay out of public messages.
+
+The purchase page’s “I understand and want to continue” action opens a purchase-check dialog using the same pinned header/footer and scrolling body as More details. Closing retains the draft. Purchase validation and unexpected failures appear inside the dialog; links to main-page inputs close it and focus those inputs. Escape returns focus to the continue button.

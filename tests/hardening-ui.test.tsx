@@ -18,7 +18,7 @@ function button(name:string):HTMLButtonElement {
  if(!node)throw new Error('Missing button '+name);return node;
 }
 async function click(name:string) {
- await act(async()=>{if(name==='Compare options' && host.querySelector('[role=dialog]'))button('Done').click();button(name).click();await vi.advanceTimersByTimeAsync(5000);});
+ await act(async()=>{if(['Compare options','Clear all'].includes(name) && host.querySelector('[role=dialog]'))button('Done').click();button(name).click();await vi.advanceTimersByTimeAsync(5000);});
 }
 function select(id:string,value:string) {
  const node=host.querySelector<HTMLSelectElement>('#'+id)!;
@@ -60,7 +60,7 @@ describe('Sprint 4 UI hardening',()=>{
   expect(host.textContent).toContain('R1 billion');
  });
  it('fails closed after an unexpected staged adapter failure and provides focus recovery',async()=>{
-  await click('Use example');
+  await click('Use example');await click('I understand and want to continue');
   for(const checkbox of host.querySelectorAll<HTMLInputElement>('input[type=checkbox]'))act(()=>checkbox.click());
   await click('Check smaller purchases');expect(host.textContent).toContain('Next purchase: fits these numbers');
   vi.spyOn(adapter,'safeDraft').mockImplementationOnce(()=>{throw new Error('test-only staged failure');});

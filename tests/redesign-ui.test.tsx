@@ -21,6 +21,20 @@ function click(name: string) {act(()=>button(name).click());}
 function finish() {act(()=>vi.runAllTimers());}
 function visibleLoading() {return [...host.querySelectorAll<HTMLElement>('.loading-state')].filter(node=>!node.closest('[hidden]'));}
 describe('redesigned decision flow',()=>{
+  it('opens purchase checks in a modal and preserves entered values when closed',()=>{
+    click('Use example');finish();
+    act(()=>host.querySelector<HTMLAnchorElement>('a[href="#safe-to-buy"]')!.click());
+    expect(host.querySelector('.staged-checkpoint')).toBeNull();
+    click('I understand and want to continue');
+    expect(host.querySelector('[role=dialog]')?.textContent).toContain('Check smaller purchases');
+    expect(document.activeElement?.id).toBe('splitAcceptance');
+    const batch=host.querySelector<HTMLInputElement>('#minimumBatch')!;
+    act(()=>{Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(batch,'75');batch.dispatchEvent(new Event('input',{bubbles:true}));});
+    click('Done');expect(host.querySelector('[role=dialog]')).toBeNull();
+    click('I understand and want to continue');
+    expect(host.querySelector<HTMLInputElement>('#minimumBatch')?.value).toBe('75');
+  });
+
   it('starts validation with one actionable detail and keeps the other errors collapsed',()=>{
     click('Compare options');finish();
     const summary=host.querySelector<HTMLElement>('.error-summary')!;
@@ -37,25 +51,21 @@ describe('redesigned decision flow',()=>{
   });
 
   it('cannot restore example results or navigate after clearing a pending example',()=>{
-    click('Use example');expect(visibleLoading()).toHaveLength(1);
+    click('Use example');expect(visibleLoading()).toHaveLength(0);
     click('Clear all');finish();
     expect(host.querySelector<HTMLInputElement>('#cash')?.value).toBe('');
     expect(host.querySelector('.result-highlight')).toBeNull();
     expect(host.querySelector('.home-workspace')?.hasAttribute('hidden')).toBe(false);
     expect(visibleLoading()).toHaveLength(0);
   });
-  it('uses the same in-panel loading language for comparison and staged checks without hiding the workspace',()=>{
-    click('Use example');
-    const comparison=visibleLoading()[0];expect(comparison?.textContent).toBe('SonaroraLoading…');
-    expect(comparison?.getAttribute('aria-busy')).toBe('true');
-    expect(host.querySelector('.home-workspace')?.hasAttribute('hidden')).toBe(false);
+  it('does not show a loader or a changed-input message while a comparison is pending',()=>{
+    click('Use example');finish();
+    act(()=>{const cash=host.querySelector<HTMLInputElement>('#cash')!;Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(cash,'601');cash.dispatchEvent(new Event('input',{bubbles:true}));});
+    click('Compare options');
+    expect(visibleLoading()).toHaveLength(0);
+    expect(host.querySelector('#comparison .empty-result')).toBeNull();
     finish();
-    act(()=>host.querySelector<HTMLAnchorElement>('a[href="#safe-to-buy"]')!.click());
-    click('I understand and want to continue');click('Check smaller purchases');
-    expect(visibleLoading()).toHaveLength(1);
-    expect(visibleLoading()[0]?.textContent).toBe(comparison?.textContent);
-    expect(visibleLoading()[0]?.querySelector('[role="progressbar"]')?.getAttribute('aria-label')).toBe('Loading Sonarora');
-    finish();expect(visibleLoading()).toHaveLength(0);
+    expect(host.querySelectorAll('#comparison [data-strategy]')).toHaveLength(3);
   });
   it('invalidates the current result immediately when a probability preset changes',()=>{
     click('Use example');finish();expect(host.querySelector('.result-highlight')).not.toBeNull();
@@ -82,21 +92,20 @@ describe('redesigned decision flow',()=>{
     expect(host.querySelector('#bill2')?.getAttribute('aria-invalid')).toBe('true');
   });
 
-  it('keeps every calculation loading for at least five seconds',()=>{
+  it('completes home, comparison and purchase checks without a forced delay or loader',()=>{
     click('Use example');
-    act(()=>vi.advanceTimersByTime(4999));
-    expect(visibleLoading()).toHaveLength(1);
-    expect(host.querySelector('.result-highlight')).toBeNull();
-    act(()=>vi.advanceTimersByTime(1));
     expect(visibleLoading()).toHaveLength(0);
+    act(()=>vi.advanceTimersByTime(0));
     expect(host.querySelector('.result-highlight')).not.toBeNull();
     click('Compare options');
-    act(()=>vi.advanceTimersByTime(4999));expect(visibleLoading()).toHaveLength(1);
-    act(()=>vi.advanceTimersByTime(1));expect(visibleLoading()).toHaveLength(0);
+    expect(visibleLoading()).toHaveLength(0);
+    act(()=>vi.advanceTimersByTime(0));
+    expect(host.querySelectorAll('#comparison [data-strategy]')).toHaveLength(3);
     act(()=>host.querySelector<HTMLAnchorElement>('a[href="#safe-to-buy"]')!.click());
     click('I understand and want to continue');click('Check smaller purchases');
-    act(()=>vi.advanceTimersByTime(4999));expect(visibleLoading()).toHaveLength(1);
-    act(()=>vi.advanceTimersByTime(1));expect(visibleLoading()).toHaveLength(0);
+    expect(visibleLoading()).toHaveLength(0);
+    act(()=>vi.advanceTimersByTime(0));
+    expect(host.querySelector('[data-testid="safe-result"] h3')).not.toBeNull();
   });
 
 });
