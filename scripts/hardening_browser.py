@@ -109,6 +109,7 @@ def run_hardening(page, check, output, root):
     page.get_by_role('button',name='More details',exact=True).click()
     page.locator('#salesProbability-error').wait_for()
     close_more_details()
+    page.locator('.error-list summary').click()
     page.locator('.error-summary a[href="#salesProbability"]').click()
     check(page.evaluate("document.activeElement.id==='salesProbability'") and
           page.locator('#salesProbability').is_visible(),

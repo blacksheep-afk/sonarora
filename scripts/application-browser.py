@@ -210,7 +210,7 @@ try:
         open_details()
         page.get_by_role('button',name='Check smaller purchases',exact=True).click()
         page.locator('[role=alert]').wait_for()
-        check('Your reported payments, amounts still owed or confirmations do not match the financial details entered. Check them and try again.' in page.locator('[role=alert]').inner_text(),'Contradictory partial payment rejected')
+        check('Some details do not match. Check your payment, balance and bills still to pay.' in page.locator('[role=alert]').inner_text(),'Contradictory partial payment rejected')
         example()
         fill({'splitAcceptance':'not-accepted'})
         go_staged()
