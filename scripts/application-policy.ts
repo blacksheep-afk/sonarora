@@ -1,6 +1,6 @@
 import ts from 'typescript';
 export const APPLICATION_IMPORTS:Readonly<Record<string,readonly string[]>>={
- 'App.tsx':['react', './components/ui/button', './components/ui/input', './components/ui/label', './components/ui/alert', './components/ui/collapsible', './components/ui/toggle-group', './components/ui/tooltip', './components/AppIcon', './components/LoadingState', './components/DecisionViews', '@hugeicons/core-free-icons', './application/adapter', './application/session'],
+ 'App.tsx':['react', './components/ui/button', './components/ui/input', './components/ui/label', './components/ui/alert', './components/ui/dialog', './components/ui/tooltip', './components/AppIcon', './components/LoadingState', './components/DecisionViews', '@hugeicons/core-free-icons', './application/adapter', './application/session'],
  'lib/utils.ts':['clsx', 'tailwind-merge'],
  'components/AppIcon.tsx':['@hugeicons/react', 'class-variance-authority', '@/lib/utils'],
  'components/ui/card.tsx':['react', '@/lib/utils'],
@@ -21,8 +21,9 @@ export const APPLICATION_IMPORTS:Readonly<Record<string,readonly string[]>>={
  'components/ui/table.tsx':['react', '@/lib/utils'],
  'components/ui/toggle.tsx':['react', 'class-variance-authority', '@/lib/utils', 'radix-ui'],
  'components/ui/collapsible.tsx':['radix-ui'],
+ 'components/ui/dialog.tsx':['react', '@/lib/utils', '@hugeicons/core-free-icons', '@/components/AppIcon', 'radix-ui', '@/components/ui/button'],
  'foundation.ts':[],
- 'main.tsx':['react','react-dom/client','./App','./style.css','@fontsource-variable/manrope/index.css','@fontsource-variable/source-sans-3/index.css'],
+ 'main.tsx':['react','react-dom/client','./App','./style.css','./components/LoadingState','@fontsource-variable/manrope/index.css','@fontsource-variable/source-sans-3/index.css'],
  'application/adapter.ts':['../engine/money/index','../engine/validation/index','../engine/comparison/index','../engine/safe-to-buy/index','../engine/state/index','../engine/explanations/index','../engine/simulation/index'],
  'application/session.ts':['../engine/state/index','../engine/validation/index','./adapter'],
 };
