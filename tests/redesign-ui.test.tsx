@@ -21,6 +21,21 @@ function click(name: string) {act(()=>button(name).click());}
 function finish() {act(()=>vi.runAllTimers());}
 function visibleLoading() {return [...host.querySelectorAll<HTMLElement>('.loading-state')].filter(node=>!node.closest('[hidden]'));}
 describe('redesigned decision flow',()=>{
+  it('starts validation with one actionable detail and keeps the other errors collapsed',()=>{
+    click('Compare options');finish();
+    const summary=host.querySelector<HTMLElement>('.error-summary')!;
+    const rest=summary.querySelector<HTMLDetailsElement>('details')!;
+    expect(summary.querySelector('h2')?.textContent).toBe('Let’s check a few details');
+    expect(rest.open).toBe(false);
+    expect(summary.querySelectorAll(':scope > p a')).toHaveLength(1);
+    expect(rest.querySelectorAll('a').length).toBeGreaterThan(1);
+    expect(summary.textContent).not.toContain('bills.0.amount');
+    expect(document.activeElement?.id).toBe('cash');
+    act(()=>{rest.open=true;rest.querySelector<HTMLAnchorElement>('a[href="#salesProbability"]')!.click();});
+    expect(host.querySelector('[role=dialog]')).not.toBeNull();
+    expect(document.activeElement?.id).toBe('salesProbability');
+  });
+
   it('cannot restore example results or navigate after clearing a pending example',()=>{
     click('Use example');expect(visibleLoading()).toHaveLength(1);
     click('Clear all');finish();
