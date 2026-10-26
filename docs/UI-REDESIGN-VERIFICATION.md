@@ -94,3 +94,8 @@ Verification: lint, both TypeScript configurations, architecture guard, build an
 Validation now shows one actionable detail first, with the remaining issues in a collapsed native disclosure. Messages use plain instructions, retain field associations and omit internal paths. Unexpected failures preserve draft values and offer a retry. Unit coverage includes retry recovery, collapsed validation, and opening/focusing an extra field from an error link.
 
 Validation: 313 unit tests passed; lint, typecheck, architecture checks and production build passed. Focused Chromium checks at 390px and 1280px verified collapsed errors, no horizontal page overflow, and modal focus recovery. Axe found zero violations on each error-state page after correcting notice-link contrast. These focused checks do not constitute physical-phone or screen-reader testing, or a rerun of the full cross-browser gate.
+
+
+### 26 October — one-view money page
+
+The main actions now share a row, and desktop spacing is tighter while retaining the input hints and prototype notice. Focused Chromium checks confirmed the empty and example-loaded home page fits without document scrolling at 1280×720, 1366×768 and 1440×900. The details modal opens without extending the page. At 390px the layout keeps readable fields and uses vertical scrolling; additional errors, expanded content and larger text may also need scrolling. The desktop example-state axe scan found zero violations. All 313 unit tests, lint, typecheck and production build passed.
