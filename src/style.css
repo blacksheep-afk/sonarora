@@ -486,3 +486,32 @@ footer p { max-width:none; margin:0; }
 .aligned-inputs .money-input,
 .aligned-inputs .plain-input > input,
 .aligned-inputs select { width:100%; height:46px; min-height:46px; }
+
+/* Keep the primary money task within one standard desktop viewport. */
+.home-actions { display:grid; grid-template-columns:1fr 1.2fr auto; gap:.5rem; align-items:stretch; }
+.home-actions .more-details-button { margin:0; justify-content:center; }
+.aligned-inputs { row-gap:.6rem; }
+.aligned-inputs > .field > label { min-height:1.8em; }
+@media screen and (min-width:1025px) {
+ .app-header { min-height:56px; padding-block:.35rem; }
+ .prototype-alert[data-slot=alert] { padding-block:.4rem; }
+ .home-workspace { margin-top:.5rem; }
+ .input-panel,.result-panel { padding:.6rem 1rem; }
+ .input-panel .section-heading,.result-panel .section-heading { margin-bottom:.4rem; }
+ .input-panel .section-heading h2,.result-panel .section-heading h2 { font-size:1.3rem; }
+ .input-panel .section-heading p { margin-top:.15rem; margin-bottom:0; line-height:1.3; }
+ .aligned-inputs { padding-top:.35rem; row-gap:.4rem; }
+ .aligned-inputs > .field { gap:.2rem; }
+ .aligned-inputs > .field > label { min-height:24px; }
+ .aligned-inputs .field-hint { font-size:.75rem; line-height:1.3; }
+ .input-panel .planning-days-hint { font-size:.75rem; line-height:1.3; margin-top:.35rem; }
+ .home-actions { margin-top:.5rem; }
+ .input-panel .example-caption { margin-top:.2rem; margin-bottom:0; }
+ .result-panel .empty-result { min-height:280px; padding:1rem; }
+ .result-panel .result-disclaimer { margin-top:.4rem; padding-top:.35rem; }
+ footer { padding-block:.15rem; }
+}
+@media screen and (max-width:480px) {
+ .home-actions { grid-template-columns:1fr 1.2fr; }
+ .home-actions > button:last-child { grid-column:1/-1; }
+}
