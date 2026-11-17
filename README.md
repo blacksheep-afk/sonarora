@@ -1,8 +1,8 @@
-# Sonaroraaah
+# Sonarora
 
-## 1. What Sonaroraaah does
+## 1. What Sonarora does
 
-Sonaroraaah is a financial decision-support prototype for people with irregular income and small traders weighing a stock purchase against essential bills. It makes timing, uncertain receipts and unpaid obligations visible so users can explore trade-offs. It does not recommend a transaction or move money.
+Sonarora is a financial decision-support prototype for people with irregular income and small traders weighing a stock purchase against essential bills. It makes timing, uncertain receipts and unpaid obligations visible so users can explore trade-offs. It does not recommend a transaction or move money.
 
 ## 2. Try the application
 
@@ -141,4 +141,4 @@ Operation 009's agreed Sprint 0-4 hackathon prototype scope is accepted and depl
 
 The application is hosted on Vercel with GitHub integration. `main` is the accepted stable application branch; `develop` is the development/testing branch. These roles do not assert GitHub branch protection is enabled. The completion audit found neither branch marked protected. Reviewed pull requests and passing checks remain the intended publication process; only Chief controls pushes. Software acceptance does not establish completion of the separate hackathon submission requirements.
 
-Sonaroraaah is an independent financial planning prototype created for a hackathon. It is not an official FNB service, is not affiliated with or endorsed by FNB, and does not connect to real bank accounts or make payments. All results are modelled simulations based on information entered by the user.
+Sonarora is an independent financial planning prototype created for a hackathon. It is not an official FNB service, is not affiliated with or endorsed by FNB, and does not connect to real bank accounts or make payments. All results are modelled simulations based on information entered by the user.
