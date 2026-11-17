@@ -6,7 +6,7 @@ Sonaroraaah is a financial decision-support prototype for people with irregular 
 
 ## 2. Try the application
 
-**[Open the live application](https://sonaroraaah.vercel.app/). No login is required.** Use invented information to explore the prototype. Click **Load illustrative example** for a reproducible starting point; the application otherwise starts with empty financial inputs.
+**[Open the live application](https://sonarora.vercel.app). No login is required.** Use invented information to explore the prototype. Click **Load illustrative example** for a reproducible starting point; the application otherwise starts with empty financial inputs.
 
 Financial information is held in the current browser session's memory. Reloading the page or choosing **New decision session** clears it. There is no application account, database or saved history.
 
